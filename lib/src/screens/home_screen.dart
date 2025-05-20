@@ -7,7 +7,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: const Color.fromARGB(255, 231, 225, 225),
       body: SafeArea(
         child: Column(
           children: [
@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
   Widget _buildAppBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: const Color.fromARGB(255, 219, 155, 104),
+      color: const Color.fromARGB(255, 231, 225, 225),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -52,13 +52,13 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Text(
                     'Welcome back',
-                    style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 255, 255, 255)),
+                    style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 0, 0, 0)),
                   ),
                   Text(
                     'Supreme Being',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0)
                     ),
                   ),
                 ],
