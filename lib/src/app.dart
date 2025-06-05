@@ -10,7 +10,8 @@ import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
 //screens
-import 'screens/home_screen.dart';
+//import 'screens/home_screen.dart';
+import 'package:myapp/features/dashboard_module/presentation/pages/dashboard_screen.dart';
 
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {
@@ -70,7 +71,7 @@ class MyApp extends StatelessWidget {
             primaryColor: const Color.fromARGB(255, 4, 130, 38),
           ),
           themeMode: settingsController.themeMode,
-          home: const HomeScreen(),
+          home: DashboardScreen(),
 
           // Define a function to handle named routes in order to support
           // Flutter web url navigation and deep linking.
