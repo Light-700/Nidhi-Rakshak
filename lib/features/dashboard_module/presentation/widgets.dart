@@ -11,14 +11,14 @@ class SecurityStatusIndicator extends StatelessWidget {
   final DateTime lastChecked;
 
   const SecurityStatusIndicator({
-    Key? key,
+    super.key,
     this.isDeviceSecure = true,
     this.isRbiCompliant = true,
     this.isNpciCompliant = true,
     this.isJailbroken = false,
     this.isRooted = false,
     required this.lastChecked,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -56,30 +56,30 @@ class SecurityStatusIndicator extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             SizedBox(height: 20),
-            
+
             // Security Check Items
             _buildStatusItem(
               'Device Integrity',
               !isJailbroken && !isRooted,
               isJailbroken || isRooted ? 'Device compromised' : 'Secure',
             ),
-            
+
             _buildStatusItem(
               'RBI Compliance',
               isRbiCompliant,
               isRbiCompliant ? 'All checks passed' : 'Violations detected',
             ),
-            
+
             _buildStatusItem(
               'NPCI Guidelines',
               isNpciCompliant,
               isNpciCompliant ? 'Compliant' : 'Non-compliant',
             ),
-            
+
             SizedBox(height: 16),
-            
+
             // Last Updated
             Row(
               children: [
@@ -112,16 +112,10 @@ class SecurityStatusIndicator extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
+                Text(label, style: TextStyle(fontWeight: FontWeight.w500)),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -134,7 +128,7 @@ class SecurityStatusIndicator extends StatelessWidget {
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inHours < 1) {
@@ -147,7 +141,6 @@ class SecurityStatusIndicator extends StatelessWidget {
   }
 }
 
-
 enum ActionType {
   securityScan,
   complianceCheck,
@@ -156,12 +149,7 @@ enum ActionType {
   backgroundCheck,
 }
 
-enum ActionStatus {
-  success,
-  failed,
-  blocked,
-  warning,
-}
+enum ActionStatus { success, failed, blocked, warning }
 
 class ActionItem {
   final String title;
@@ -186,11 +174,7 @@ class ActionsListWidget extends StatelessWidget {
   final List<ActionItem> actions;
   final VoidCallback? onRefresh;
 
-  const ActionsListWidget({
-    Key? key,
-    required this.actions,
-    this.onRefresh,
-  }) : super(key: key);
+  const ActionsListWidget({super.key, required this.actions, this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -209,14 +193,11 @@ class ActionsListWidget extends StatelessWidget {
                   'Recent Security Actions',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: onRefresh,
-                ),
+                IconButton(icon: Icon(Icons.refresh), onPressed: onRefresh),
               ],
             ),
           ),
-          
+
           // Actions List
           if (actions.isEmpty)
             Padding(
@@ -235,22 +216,31 @@ class ActionsListWidget extends StatelessWidget {
             ListView.separated(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
-              itemCount: actions.length > 10 ? 10 : actions.length, // Show max 10
+              itemCount: actions.length > 5 ? 5 : actions.length, // Show max 10
               separatorBuilder: (context, index) => Divider(height: 1),
               itemBuilder: (context, index) {
                 final action = actions[index];
                 return _buildActionTile(action);
               },
             ),
-          
+
           // Show More Button
-          if (actions.length > 10)
+          if (actions.length > 5)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Center(
                 child: TextButton(
                   onPressed: () {
-                    // Navigate to full actions list
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: AlwaysScrollableScrollPhysics(),
+                      itemCount: actions.length, // Show all
+                      separatorBuilder: (context, index) => Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final action = actions[index];
+                        return _buildActionTile(action);
+                      },
+                    ); // Navigate to full actions list
                   },
                   child: Text('View All Actions'),
                 ),
@@ -287,7 +277,7 @@ class ActionsListWidget extends StatelessWidget {
   Widget _getActionIcon(ActionType type, ActionStatus status) {
     IconData iconData;
     Color iconColor;
-    
+
     switch (type) {
       case ActionType.securityScan:
         iconData = Icons.security;
@@ -305,7 +295,7 @@ class ActionsListWidget extends StatelessWidget {
         iconData = Icons.schedule;
         break;
     }
-    
+
     switch (status) {
       case ActionStatus.success:
         iconColor = Colors.green;
@@ -320,10 +310,10 @@ class ActionsListWidget extends StatelessWidget {
         iconColor = Colors.amber;
         break;
     }
-    
+
     return CircleAvatar(
       radius: 16,
-      backgroundColor: iconColor.withOpacity(0.1),
+      backgroundColor: iconColor.withValues(alpha: 0.1),
       child: Icon(iconData, color: iconColor, size: 16),
     );
   }
@@ -331,7 +321,7 @@ class ActionsListWidget extends StatelessWidget {
   Widget _getStatusBadge(ActionStatus status) {
     String text;
     Color color;
-    
+
     switch (status) {
       case ActionStatus.success:
         text = 'SUCCESS';
@@ -350,13 +340,13 @@ class ActionsListWidget extends StatelessWidget {
         color = Colors.amber;
         break;
     }
-    
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         text,
@@ -372,7 +362,7 @@ class ActionsListWidget extends StatelessWidget {
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inHours < 1) {
@@ -389,5 +379,3 @@ class ActionsListWidget extends StatelessWidget {
     // Connect this to your detailed view later
   }
 }
-
-

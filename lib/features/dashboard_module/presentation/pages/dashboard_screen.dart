@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:myapp/features/dashboard_module/presentation/widgets.dart';
 
 class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // These will be connected to your data sources later
+  // These will be connected to our data sources later
   bool _isLoading = false;
 
   // Sample data - replace with real data from your modules
@@ -41,8 +43,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Security Dashboard'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 255, 254, 254),
+        foregroundColor: const Color.fromARGB(255, 0, 0, 0),
         actions: [
           IconButton(
             icon: Icon(Icons.settings),
