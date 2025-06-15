@@ -3,6 +3,9 @@ import 'package:myapp/src/localization/app_localizations.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+// Services
+import 'package:myapp/features/background_module/services/service_provider.dart';
+
 //sample_features which will be deleted later
 import 'sample_feature/sample_item_details_view.dart';
 import 'sample_feature/sample_item_list_view.dart';

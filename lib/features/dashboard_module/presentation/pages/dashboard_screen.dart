@@ -1,45 +1,75 @@
 // lib/features/dashboard_module/presentation/pages/dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:myapp/features/dashboard_module/presentation/widgets.dart';
+import 'package:myapp/src/settings/settings_view.dart';
+import 'package:myapp/features/background_module/services/service_provider.dart';
+import 'package:myapp/features/background_module/services/security_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _DashboardScreenState createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // These will be connected to our data sources later
   bool _isLoading = false;
 
-  // Sample data - replace with real data from your modules
-  final List<ActionItem> _sampleActions = [
-    ActionItem(
-      title: 'Device Security Scan',
-      description: 'Checking for jailbreak/root access',
-      type: ActionType.securityScan,
-      status: ActionStatus.success,
-      timestamp: DateTime.now().subtract(Duration(minutes: 5)),
-    ),
-    ActionItem(
-      title: 'RBI Compliance Check',
-      description: 'Verifying transaction limits',
-      type: ActionType.complianceCheck,
-      status: ActionStatus.success,
-      timestamp: DateTime.now().subtract(Duration(minutes: 15)),
-    ),
-    ActionItem(
-      title: 'Suspicious App Detected',
-      description: 'Potential security risk identified',
-      type: ActionType.threatDetection,
-      status: ActionStatus.blocked,
-      timestamp: DateTime.now().subtract(Duration(hours: 1)),
-    ),
-  ];
-
+  // Security status
+  SecurityStatus? _securityStatus;
+  
+  // Recent actions
+  List<ActionItem> _recentActions = [];  @override
+  void initState() {
+    super.initState();
+    
+    // We need to use addPostFrameCallback since we need context
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupListeners();
+      _loadData();
+    });
+  }
+  
+  void _setupListeners() {
+    // Listen for security status updates
+    ServiceProvider.of(context).securityService.securityStream.listen((status) {
+      if (mounted) {
+        setState(() {
+          _securityStatus = status;
+        });
+      }
+    });
+    
+    // Listen for action updates
+    ServiceProvider.of(context).securityActionsService.actionsStream.listen((actions) {
+      if (mounted) {
+        setState(() {
+          _recentActions = actions;
+        });
+      }
+    });
+  }
+  
+  Future<void> _loadData() async {
+    // Get initial security status
+    final securityStatus = ServiceProvider.of(context).securityService.lastStatus;
+    
+    // Get initial actions
+    final actions = ServiceProvider.of(context).securityActionsService.getRecentActions();
+    
+    if (mounted) {
+      setState(() {
+        _securityStatus = securityStatus;
+        _recentActions = actions;
+      });
+    }
+  }
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {    
+    // Use the security status from our service, or default to secure if null
+    final securityStatus = _securityStatus ?? SecurityStatus.secure();
+    
     return Scaffold(
       appBar: AppBar(
         title: Text('Security Dashboard'),
@@ -50,6 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: Icon(Icons.settings),
             onPressed: () {
               // Navigate to settings
+              Navigator.pushNamed(context, SettingsView.routeName);
             },
           ),
         ],
@@ -63,20 +94,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               // Security Status Section
               SecurityStatusIndicator(
-                lastChecked: DateTime.now().subtract(Duration(minutes: 5)),
-                // These values will come from your security module
-                isDeviceSecure: true,
-                isRbiCompliant: true,
-                isNpciCompliant: true,
-                isJailbroken: false,
-                isRooted: false,
+                lastChecked: securityStatus.lastChecked,
+                // Values from our security service
+                isDeviceSecure: securityStatus.isDeviceSecure,
+                isRbiCompliant: true, // To be implemented later
+                isNpciCompliant: true, // To be implemented later
+                isJailbroken: securityStatus.isJailbroken,
+                isRooted: securityStatus.isRooted,
               ),
 
               SizedBox(height: 16),
 
               // Actions List Section
               ActionsListWidget(
-                actions: _sampleActions,
+                actions: _recentActions,
                 onRefresh: _refreshActions,
               ),
 
@@ -152,41 +183,109 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
   Future<void> _refreshDashboard() async {
     setState(() {
       _isLoading = true;
     });
 
-    // This is where you'll connect to your security module
-    // await securityService.refreshSecurityStatus();
-    // await complianceService.checkCompliance();
-
-    await Future.delayed(Duration(seconds: 2)); // Simulate loading
-
-    setState(() {
-      _isLoading = false;
-    });
+    try {
+      // Get security service
+      final securityService = ServiceProvider.of(context).securityService;
+      
+      // Refresh security status
+      final updatedStatus = await securityService.refreshSecurityStatus();
+      
+      // Update state
+      setState(() {
+        _securityStatus = updatedStatus;
+      });
+    } catch (e) {
+      // Handle errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error refreshing security data: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _refreshActions() async {
-    // Connect to your background service module
-    // final newActions = await backgroundService.getRecentActions();
+    try {
+      // Get action service
+      final actionsService = ServiceProvider.of(context).securityActionsService;
+      
+      // Refresh actions
+      final actions = actionsService.getRecentActions();
+      
+      // Update state
+      if (mounted) {
+        setState(() {
+          _recentActions = actions;
+        });
+      }
+    } catch (e) {
+      // Handle errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error refreshing actions: $e')),
+      );
+    }
   }
 
-  void _runSecurityScan() {
-    // Connect to your security module
-    // securityService.runFullSecurityScan();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Security scan initiated...')));
+  Future<void> _runSecurityScan() async {
+    // Show progress indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Running security scan...')),
+    );
+    
+    try {
+      // Get security service
+      final securityService = ServiceProvider.of(context).securityService;
+      final actionsService = ServiceProvider.of(context).securityActionsService;
+      
+      // Run security scan
+      final result = await securityService.runFullSecurityScan();
+      
+      // Record the action
+      actionsService.recordSecurityScan(
+        wasSuccessful: result.isDeviceSecure,
+        details: result.detectedThreats.isNotEmpty 
+            ? 'Found ${result.detectedThreats.length} security threats' 
+            : null,
+      );
+      
+      // Update UI
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.isDeviceSecure
+                ? 'Security scan completed: Device secure'
+                : 'Security scan completed: Issues found',
+          ),
+          backgroundColor: result.isDeviceSecure ? Colors.green : Colors.orange,
+        ),
+      );
+    } catch (e) {
+      // Handle errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during security scan: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _checkCompliance() {
-    // Connect to your compliance module
-    // complianceService.performComplianceCheck();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Compliance check initiated...')));
+    // Since compliance checks are to be implemented later,
+    // we'll keep this as a placeholder
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Compliance check initiated...')),
+    );
+    
+    // This is where you would integrate with RBI/NPCI compliance checks later
   }
 }
