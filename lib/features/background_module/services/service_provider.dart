@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/features/background_module/services/security_actions_service.dart';
-import 'package:myapp/features/background_module/services/security_service.dart';
+import 'package:nidhi_rakshak/features/background_module/services/security_actions_service.dart';
+import 'package:nidhi_rakshak/features/background_module/services/security_service.dart';
 
 class ServiceProvider extends InheritedWidget {
   final SecurityService securityService;

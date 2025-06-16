@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:myapp/features/dashboard_module/presentation/widgets.dart';
+import 'package:nidhi_rakshak/features/dashboard_module/presentation/widgets.dart';
 
 class SecurityActionsService {
   static final SecurityActionsService _instance = SecurityActionsService._internal();

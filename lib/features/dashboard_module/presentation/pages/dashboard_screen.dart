@@ -1,9 +1,9 @@
 // lib/features/dashboard_module/presentation/pages/dashboard_screen.dart
 import 'package:flutter/material.dart';
-import 'package:myapp/features/dashboard_module/presentation/widgets.dart';
-import 'package:myapp/src/settings/settings_view.dart';
-import 'package:myapp/features/background_module/services/service_provider.dart';
-import 'package:myapp/features/background_module/services/security_service.dart';
+import 'package:nidhi_rakshak/features/dashboard_module/presentation/widgets.dart';
+import 'package:nidhi_rakshak/src/settings/settings_view.dart';
+import 'package:nidhi_rakshak/features/background_module/services/service_provider.dart';
+import 'package:nidhi_rakshak/features/background_module/services/security_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
