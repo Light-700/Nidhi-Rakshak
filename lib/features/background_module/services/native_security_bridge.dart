@@ -68,6 +68,41 @@ class NativeSecurityBridge {
     }
   }
   
+  /// Check if developer mode is enabled
+  static Future<bool> checkDeveloperMode() async {
+    try {
+      if (_isAndroid()) {
+        final bool result = await _channel.invokeMethod('isDeveloperModeEnabled');
+        return result;
+      } else if (_isIOS()) {
+        // iOS doesn't have a traditional "developer mode" but can check debug status
+        final bool result = await _channel.invokeMethod('isDebuggerAttached');
+        return result;
+      }
+      return false;
+    } on PlatformException catch (e) {
+      print('Error checking developer mode: ${e.message}');
+      return false;
+    }
+  }
+  
+  /// Get settings value from Android Settings.Global (integer)
+  static Future<int> getAndroidSettingsInt(String settingsKey, {int defaultValue = 0}) async {
+    if (!_isAndroid()) return defaultValue;
+    
+    try {
+      final int result = await _channel.invokeMethod('getAndroidSettingsInt', {
+        'settingsType': 'Global',
+        'settingsKey': settingsKey,
+        'defaultValue': defaultValue
+      });
+      return result;
+    } on PlatformException catch (e) {
+      print('Error getting Android settings: ${e.message}');
+      return defaultValue;
+    }
+  }
+  
   /// Helper to check if running on iOS
   static bool _isIOS() => identical(0, 0.0) ? false : true; // Platform.isIOS
   

@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+// import 'package:package_info_plus/package_info_plus.dart';
 
 import 'security_models.dart';
 
@@ -48,8 +48,7 @@ class ThreatDetector {
           ),
         );
       }
-      
-      // Check for Frida and other dynamic instrumentation tools
+        // Check for Frida and other dynamic instrumentation tools
       final hasDynamicInstrumentation = await _checkForDynamicInstrumentation();
       if (hasDynamicInstrumentation) {
         threats.add(
@@ -61,14 +60,51 @@ class ThreatDetector {
         );
       }
       
-      // In a real implementation, you'd connect to a threat intelligence API
-      // For now, we'll simulate finding threats occasionally for demo purposes
-      if (DateTime.now().second % 5 == 0) {
+      // Check if developer mode is enabled
+      final isDeveloperModeEnabled = await _checkForDeveloperMode();
+      if (isDeveloperModeEnabled) {
         threats.add(
           SecurityThreat(
-            name: 'Suspicious App',
-            description: 'An app with potentially harmful permissions was detected',
+            name: 'Developer Mode Enabled',
+            description: 'Developer mode is enabled on this device, which can expose sensitive features and reduce security',
             level: SecurityThreatLevel.medium,
+          ),
+        );
+      }
+        // In a real implementation, you'd connect to a threat intelligence API
+      // For now, we'll simulate finding threats occasionally for demo purposes
+      if (DateTime.now().second % 5 == 0) {
+        // Adding more detailed suspicious app information
+        final suspiciousApps = [
+          {
+            'name': 'Suspicious App',
+            'appName': 'DataHarvester Pro',
+            'description': 'An app with excessive permissions to contacts, location, and SMS access',
+            'level': SecurityThreatLevel.high,
+          },
+          {
+            'name': 'Suspicious App',
+            'appName': 'Free VPN Service',
+            'description': 'App may be intercepting network traffic and collecting sensitive data',
+            'level': SecurityThreatLevel.medium,
+          },
+          {
+            'name': 'Harmful App',
+            'appName': 'System Optimizer Ultimate',
+            'description': 'Known adware that displays excessive ads and collects user data',
+            'level': SecurityThreatLevel.medium,
+          }
+        ];
+        
+        // Pick one suspicious app at random to report
+        final random = DateTime.now().millisecond % suspiciousApps.length;
+        final suspiciousApp = suspiciousApps[random];
+        
+        threats.add(
+          SecurityThreat(
+            name: suspiciousApp['name'] as String,
+            description: '${suspiciousApp['description']}: ${suspiciousApp['appName']}',
+            level: suspiciousApp['level'] as SecurityThreatLevel,
           ),
         );
       }
@@ -228,6 +264,70 @@ class ThreatDetector {
       }
     } catch (e) {
       debugPrint('Error checking for dynamic instrumentation: $e');
+    }
+    
+    return false;
+  }
+  
+  /// Check if developer mode is enabled
+  static Future<bool> _checkForDeveloperMode() async {
+    try {
+      if (Platform.isAndroid) {
+        // For Android, we need to use platform channel to check developer options
+        try {
+          final result = await _platform.invokeMethod('isDeveloperModeEnabled');
+          return result == true;
+        } catch (e) {
+          // Method not implemented yet in native code, use a fallback
+          try {
+            // Alternative approach: Try to read global settings via platform channel
+            final adbEnabled = await _platform.invokeMethod('getAndroidSettingsInt', {
+              'settingsType': 'Global',
+              'settingsKey': 'adb_enabled',
+              'defaultValue': 0
+            });
+            
+            if (adbEnabled == 1) {
+              debugPrint('Developer mode detected: ADB enabled');
+              return true;
+            }
+            
+            final developerOptionsEnabled = await _platform.invokeMethod('getAndroidSettingsInt', {
+              'settingsType': 'Global',
+              'settingsKey': 'development_settings_enabled',
+              'defaultValue': 0
+            });
+            
+            return developerOptionsEnabled == 1;
+          } catch (e) {
+            debugPrint('Error checking developer settings: $e');
+            // Since we can't detect it reliably without native code, return false
+            // to avoid false positives
+            return false;
+          }
+        }
+      } 
+      else if (Platform.isIOS) {
+        // iOS doesn't have a traditional "developer mode" like Android
+        // However, you can check for a connected debugger or developer-specific settings
+        try {
+          // Check if app is connected to debugger (requires native implementation)
+          final result = await _platform.invokeMethod('isDebuggerAttached');
+          if (result == true) {
+            return true;
+          }
+          
+          // Check for developer-specific profiles
+          final hasDeveloperProfile = await _platform.invokeMethod('hasDeveloperProfile');
+          return hasDeveloperProfile == true;
+        } catch (e) {
+          // Method not implemented yet
+          debugPrint('Developer mode check not implemented for iOS: $e');
+          return false;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking for developer mode: $e');
     }
     
     return false;
