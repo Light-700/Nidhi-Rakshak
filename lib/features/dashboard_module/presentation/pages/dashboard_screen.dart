@@ -1,5 +1,6 @@
 // lib/features/dashboard_module/presentation/pages/dashboard_screen.dart
 import 'package:flutter/material.dart';
+import 'package:nidhi_rakshak/features/background_module/services/security/security_models.dart';
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/widgets.dart';
 import 'package:nidhi_rakshak/src/settings/settings_view.dart';
 import 'package:nidhi_rakshak/features/background_module/services/service_provider.dart';
@@ -14,6 +15,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  // ignore: unused_field
   bool _isLoading = false;
 
   // Security status

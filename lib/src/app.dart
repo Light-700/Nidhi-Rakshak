@@ -4,6 +4,7 @@ import 'package:nidhi_rakshak/src/localization/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 // Services
+// ignore: unused_import
 import 'package:nidhi_rakshak/features/background_module/services/service_provider.dart';
 
 //sample_features which will be deleted later
