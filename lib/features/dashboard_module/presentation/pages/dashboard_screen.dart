@@ -124,11 +124,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // Quick Actions Section
               _buildQuickActionsCard(),
-              
-              SizedBox(height: 16),
-              
-              // Suspicious Apps Section
-              _buildSuspiciousAppsCard(),
             ],
           ),
         ),
