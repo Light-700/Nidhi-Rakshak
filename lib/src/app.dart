@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/src/localization/app_localizations.dart';
+import 'package:nidhi_rakshak/src/localization/app_localizations.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
+
+// Services
+// ignore: unused_import
+import 'package:nidhi_rakshak/features/background_module/services/service_provider.dart';
 
 //sample_features which will be deleted later
 import 'sample_feature/sample_item_details_view.dart';
@@ -11,7 +15,7 @@ import 'settings/settings_view.dart';
 
 //screens
 //import 'screens/home_screen.dart';
-import 'package:myapp/features/dashboard_module/presentation/pages/dashboard_screen.dart';
+import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/dashboard_screen.dart';
 
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {

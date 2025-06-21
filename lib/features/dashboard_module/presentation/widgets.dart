@@ -38,21 +38,26 @@ class SecurityStatusIndicator extends StatelessWidget {
                   size: 32,
                 ),
                 SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Device Security Status',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    Text(
-                      isDeviceSecure ? 'SECURE' : 'COMPROMISED',
-                      style: TextStyle(
-                        color: isDeviceSecure ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Device Security Status',
+                        style: TextStyle( 
+                          color: Theme.of(context).colorScheme.primary, 
+                          fontSize: 22,
+                        ),
                       ),
-                    ),
-                  ],
+                      Text(
+                        isDeviceSecure ? 'SECURE' : 'COMPROMISED',
+                        style: TextStyle(
+                          color: isDeviceSecure ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -169,15 +174,28 @@ class ActionItem {
   });
 }
 
-class ActionsListWidget extends StatelessWidget {
+class ActionsListWidget extends StatefulWidget {
   // This will be connected to your background service data later
   final List<ActionItem> actions;
   final VoidCallback? onRefresh;
-
   const ActionsListWidget({super.key, required this.actions, this.onRefresh});
 
   @override
+  State<ActionsListWidget> createState() => _ActionsListWidgetState();
+}
+
+class _ActionsListWidgetState extends State<ActionsListWidget> {
+ /* bool _showAllActions = false; 
+
+  void _toggleShowAll() {
+    setState(() { 
+      _showAllActions = !_showAllActions;
+    });
+  }*/  //not required for now 
+
+  @override
   Widget build(BuildContext context) {
+    
     return Card(
       elevation: 4,
       child: Column(
@@ -189,17 +207,24 @@ class ActionsListWidget extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Recent Security Actions',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                Flexible(
+                  child: Text(
+                    'Recent Security Actions',
+                    style: TextStyle( 
+                          color: Theme.of(context).colorScheme.primary, 
+                          fontSize: 22,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
-                IconButton(icon: Icon(Icons.refresh), onPressed: onRefresh),
+                IconButton(icon: Icon(Icons.refresh), onPressed: widget.onRefresh),
               ],
             ),
           ),
 
           // Actions List
-          if (actions.isEmpty)
+           if (widget.actions.isEmpty)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Center(
@@ -214,40 +239,61 @@ class ActionsListWidget extends StatelessWidget {
             )
           else
             ListView.separated(
-              shrinkWrap: true,
+              shrinkWrap: true, 
               physics: NeverScrollableScrollPhysics(),
-              itemCount: actions.length > 5 ? 5 : actions.length, // Show max 10
+              itemCount: widget.actions.length > 5  ? 5: widget.actions.length, // Show only first 5 actions 
               separatorBuilder: (context, index) => Divider(height: 1),
               itemBuilder: (context, index) {
-                final action = actions[index];
+                final action = widget.actions[index];
                 return _buildActionTile(action);
               },
             ),
 
-          // Show More Button
-          if (actions.length > 5)
+          // Show More/Show Less Button
+          if (widget.actions.length > 5)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Center(
-                child: TextButton(
-                  onPressed: () {
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: AlwaysScrollableScrollPhysics(),
-                      itemCount: actions.length, // Show all
-                      separatorBuilder: (context, index) => Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final action = actions[index];
-                        return _buildActionTile(action);
-                      },
-                    ); // Navigate to full actions list
-                  },
-                  child: Text('View All Actions'),
+                child: TextButton.icon(
+                  onPressed: _showAllActionsDialog,
+                  label: Text('View All Actions'), 
                 ),
               ),
             ),
         ],
       ),
+    );
+  }
+
+    void _showAllActionsDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog.fullscreen(
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(
+                'Recent Security Actions',
+                style: TextStyle(fontSize: 18),
+              ),
+              leading: IconButton(
+                icon: Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            body:ListView.separated(
+                    padding: EdgeInsets.all(16.0),
+                    itemCount: widget.actions.length, // Shows ALL actions
+                    separatorBuilder: (context, index) => Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final action = widget.actions[index];
+                      return _buildActionTile(action); 
+                    },
+                  ),
+          ),
+        );
+      },
     );
   }
 
