@@ -3,20 +3,25 @@ import 'dart:async';
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/widgets.dart';
 
 class SecurityActionsService {
+  // The class uses the Singleton pattern to ensure only one instance exists throughout the application
   static final SecurityActionsService _instance = SecurityActionsService._internal();
   factory SecurityActionsService() => _instance;
 
   SecurityActionsService._internal();
 
-  // Store recent actions
+  // Store recent actions - Action Storage and Access
+  // Maintains an internal list of security actions
+  // Provides read-only access through the getter (using unmodifiable to prevent external modifications)
   final List<ActionItem> _recentActions = [];
   List<ActionItem> get recentActions => List.unmodifiable(_recentActions);
 
-  // Stream controller to broadcast action updates
+  // Stream controller to broadcast action updates -  Event Broadcasting
+  // Uses a broadcast StreamController to notify listeners when actions are added
+  // Components (like UI widgets) can subscribe to this stream to get real-time updates
   final _actionsStreamController = StreamController<List<ActionItem>>.broadcast();
   Stream<List<ActionItem>> get actionsStream => _actionsStreamController.stream;
 
-  // Add a new action
+  // Recording Actions - Add a new action
   void recordAction(ActionItem action) {
     _recentActions.insert(0, action); // Add to front of list
     
@@ -29,7 +34,7 @@ class SecurityActionsService {
     _actionsStreamController.add(_recentActions);
   }
 
-  // Get recent actions (with optional limit)
+  // Retrieving Actions - Get recent actions (with optional limit)
   List<ActionItem> getRecentActions({int limit = 10}) {
     return _recentActions.take(limit).toList();
   }
@@ -83,7 +88,17 @@ class SecurityActionsService {
   }
 
   // Dispose resources
+  // Properly closes the stream controller when the service is no longer needed
   void dispose() {
     _actionsStreamController.close();
   }
 }
+
+/*
+This service is likely used for:
+
+1. Logging Security Events: Recording when security scans, checks, and threat detections occur
+2. Displaying Activity History: Showing users a log of recent security-related actions
+3. Real-time Notifications: Updating the UI immediately when new security events happen
+4. Security Audit Trail: Maintaining a history of security-related activities
+*/
