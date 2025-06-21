@@ -211,7 +211,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   'Security Threats',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 22,
+                  ),
                 ),
                 threats.isEmpty 
                   ? Icon(Icons.verified, color: Colors.green)
@@ -320,7 +323,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha:0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color),
       ),
@@ -358,9 +361,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Suspicious Applications',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                Flexible(
+                  child: Text(
+                    'Suspicious Applications',
+                    style:TextStyle( 
+                          color: Theme.of(context).colorScheme.primary, 
+                          fontSize: 22,
+                        ),
+                  ),
                 ),
                 suspiciousApps.isEmpty 
                   ? Icon(Icons.verified, color: Colors.green)
@@ -445,12 +453,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ],
                           ),
                           trailing: ElevatedButton(
-                            child: Text('Info'),
+                            
                             onPressed: () => _showAppDetails(app),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
                               foregroundColor: Colors.white,
                             ),
+                            child: Text('Info'),
                           ),
                           isThreeLine: true,
                         ),
@@ -561,6 +570,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
     } catch (e) {
       // Handle errors
+      if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error refreshing security data: $e')),
       );
@@ -622,6 +632,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
       
       // Update UI
+      if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -634,6 +645,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     } catch (e) {
       // Handle errors
+      if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error during security scan: $e'),
