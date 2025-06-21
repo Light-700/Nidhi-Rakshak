@@ -286,6 +286,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       SnackBar(content: Text('Compliance check initiated...')),
     );
     
-    // This is where you would integrate with RBI/NPCI compliance checks later
+    // This is where we would integrate with RBI/NPCI compliance checks later
   }
 }

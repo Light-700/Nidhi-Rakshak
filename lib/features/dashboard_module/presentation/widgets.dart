@@ -38,21 +38,26 @@ class SecurityStatusIndicator extends StatelessWidget {
                   size: 32,
                 ),
                 SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Device Security Status',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    Text(
-                      isDeviceSecure ? 'SECURE' : 'COMPROMISED',
-                      style: TextStyle(
-                        color: isDeviceSecure ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Device Security Status',
+                        style: TextStyle( 
+                          color: Theme.of(context).colorScheme.primary, 
+                          fontSize: 22,
+                        ),
                       ),
-                    ),
-                  ],
+                      Text(
+                        isDeviceSecure ? 'SECURE' : 'COMPROMISED',
+                        style: TextStyle(
+                          color: isDeviceSecure ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -189,9 +194,14 @@ class ActionsListWidget extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Recent Security Actions',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                Flexible(
+                  child: Text(
+                    'Recent Security Actions',
+                    style: TextStyle( 
+                          color: Theme.of(context).colorScheme.primary, 
+                          fontSize: 22,
+                        ),
+                  ),
                 ),
                 IconButton(icon: Icon(Icons.refresh), onPressed: onRefresh),
               ],
