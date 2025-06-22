@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+#ios related
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+
+#auto-generated files
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/Generated.xcconfig
