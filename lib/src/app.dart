@@ -66,13 +66,16 @@ class MyApp extends StatelessWidget {
           // Define a light and dark color theme. Then, read the user's
           // preferred ThemeMode (light, dark, or system default) from the
           // SettingsController to display the correct theme.
-          theme: ThemeData(
-            primaryColor: const Color.fromARGB(255, 2, 205, 73),
-            scaffoldBackgroundColor: const Color.fromARGB(255, 206, 89, 5),
-            fontFamily: 'Roboto',
+          theme:  ThemeData(
+          primaryColor: const Color.fromARGB(255, 32, 45, 191),
+          scaffoldBackgroundColor: Colors.transparent, // Allow gradients to show
+           fontFamily: 'Roboto',
+            brightness: Brightness.light,
           ),
           darkTheme: ThemeData.dark().copyWith(
-            primaryColor: const Color.fromARGB(255, 4, 130, 38),
+          primaryColor: const Color.fromARGB(255, 100, 110, 213),
+          scaffoldBackgroundColor: Colors.transparent,
+           brightness: Brightness.dark,
           ),
           themeMode: settingsController.themeMode,
           home: DashboardScreen(),

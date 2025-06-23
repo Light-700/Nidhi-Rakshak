@@ -1,9 +1,9 @@
-// lib/features/dashboard_module/presentation/pages/dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:nidhi_rakshak/features/background_module/services/security/security_models.dart';
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/widgets.dart';
 import 'package:nidhi_rakshak/src/settings/settings_view.dart';
 import 'package:nidhi_rakshak/features/background_module/services/service_provider.dart';
+import 'package:nidhi_rakshak/src/theme/gradient_theme.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -71,60 +71,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Use the security status from our service, or default to secure if null
     final securityStatus = _securityStatus ?? SecurityStatus.secure();
     
-    return Scaffold(
+    return Container(
+      decoration: BoxDecoration(
+      gradient: AppGradients.getBackgroundGradient(context),
+    ),
+      child: Scaffold(
+     backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text('Security Dashboard'),
-        backgroundColor: const Color.fromARGB(255, 255, 254, 254),
-        foregroundColor: const Color.fromARGB(255, 0, 0, 0),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              // Navigate to settings
-              Navigator.pushNamed(context, SettingsView.routeName);
-            },
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refreshDashboard,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,            children: [
-              // Security Status Section
-              SecurityStatusIndicator(
-                lastChecked: securityStatus.lastChecked,
-                // Values from our security service
-                isDeviceSecure: securityStatus.isDeviceSecure,
-                isRbiCompliant: false, // To be implemented later
-                isNpciCompliant: false, // To be implemented later
-                isJailbroken: securityStatus.isJailbroken,
-                isRooted: securityStatus.isRooted,
-              ),
-
-              SizedBox(height: 16),
-                // Security Threats Section
-              _buildSecurityThreatsCard(),
-              
-              SizedBox(height: 16),
-              
-              // Suspicious Apps Section
-              _buildSuspiciousAppsCard(),
-              
-              SizedBox(height: 16),
-
-              // Actions List Section
-              ActionsListWidget(
-                actions: _recentActions,
-                onRefresh: _refreshActions,
-              ),
-
-              SizedBox(height: 16),
-
-              // Quick Actions Section
-              _buildQuickActionsCard(),
-            ],
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Theme.of(context).brightness == Brightness.dark 
+          ? Colors.white 
+          : Colors.black,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () {
+                // Navigate to settings
+                Navigator.pushNamed(context, SettingsView.routeName);
+              },
+            ),
+          ],
+        ),
+        body: RefreshIndicator(
+          onRefresh: _refreshDashboard,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,           
+               children: [
+                // Security Status Section
+                SecurityStatusIndicator(
+                  lastChecked: securityStatus.lastChecked,
+                  // Values from our security service
+                  isDeviceSecure: securityStatus.isDeviceSecure,
+                  isRbiCompliant: false, // To be implemented later
+                  isNpciCompliant: false, // To be implemented later
+                  isJailbroken: securityStatus.isJailbroken,
+                  isRooted: securityStatus.isRooted,
+                ),
+      
+                SizedBox(height: 16),
+                  // Security Threats Section
+                _buildSecurityThreatsCard(),
+                
+                SizedBox(height: 16),
+                
+                // Suspicious Apps Section
+                _buildSuspiciousAppsCard(),
+                
+                SizedBox(height: 16),
+      
+                // Actions List Section
+                ActionsListWidget(
+                  actions: _recentActions,
+                  onRefresh: _refreshActions,
+                ),
+      
+                SizedBox(height: 16),
+      
+                // Quick Actions Section
+                _buildQuickActionsCard(),
+              ],
+            ),
           ),
         ),
       ),
