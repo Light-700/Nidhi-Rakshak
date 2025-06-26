@@ -17,6 +17,9 @@ import 'settings/settings_view.dart';
 //import 'screens/home_screen.dart';
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/dashboard_screen.dart';
 
+// Transaction Security
+import 'package:nidhi_rakshak/features/transaction_security/presentation/pages/transaction_security_page.dart';
+
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {
   const MyApp({
@@ -86,6 +89,8 @@ class MyApp extends StatelessWidget {
                 switch (routeSettings.name) {
                   case SettingsView.routeName:
                     return SettingsView(controller: settingsController);
+                  case TransactionSecurityPage.routeName:
+                    return const TransactionSecurityPage();
                   case SampleItemDetailsView.routeName:
                     return const SampleItemDetailsView();
                   case SampleItemListView.routeName:

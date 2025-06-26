@@ -27,6 +27,7 @@ void main() async {
     ServiceProvider(
       securityService: AppServices.security,
       securityActionsService: AppServices.actions,
+      transactionSecurityService: AppServices.transactionSecurity,
       child: MyApp(settingsController: settingsController),
     ),
   );
