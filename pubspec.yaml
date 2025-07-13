@@ -33,13 +33,20 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.  cupertino_icons: ^1.0.8
-  shared_preferences: ^2.2.2
-  device_info_plus: ^11.5.0
-  package_info_plus: ^8.3.0
-  path_provider: ^2.1.5
-  workmanager: ^0.6.0
+  http: ^1.4.0              # For API calls
+  dio: ^5.0.0                # Alternative HTTP client with interceptors
+  retrofit: ^4.0.0           # Type-safe API client
+  json_annotation: ^4.8.0   # JSON serialization
+  
+  shared_preferences: ^2.2.2  # For storing user preferences
+  device_info_plus: ^11.5.0  # For device information
+  package_info_plus: ^8.3.0   # For app information
+  path_provider: ^2.1.5   # For accessing the file system
+  workmanager: ^0.8.0   # For background tasks
+  flutter_secure_storage: ^10.0.0-beta.4    # Secure data storage 
+  crypto: ^3.0.3                     # Cryptographic functions
+  encrypt: ^5.0.1                    # Data encryption
+  local_auth: ^2.1.6             # Biometric authentication
 
 dev_dependencies:
   flutter_test:
@@ -50,7 +57,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
