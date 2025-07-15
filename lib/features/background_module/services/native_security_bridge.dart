@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 /// Bridge to native security checks for advanced jailbreak and root detection
 class NativeSecurityBridge {
@@ -13,7 +14,7 @@ class NativeSecurityBridge {
       final bool result = await _channel.invokeMethod('checkJailbreak');
       return result;
     } on PlatformException catch (e) {
-      print('Error calling native jailbreak detection: ${e.message}');
+      debugPrint('Error calling native jailbreak detection: ${e.message}');
       return false;
     }
   }
@@ -26,7 +27,7 @@ class NativeSecurityBridge {
       final bool result = await _channel.invokeMethod('checkRoot');
       return result;
     } on PlatformException catch (e) {
-      print('Error calling native root detection: ${e.message}');
+      debugPrint('Error calling native root detection: ${e.message}');
       return false;
     }
   }
@@ -37,7 +38,7 @@ class NativeSecurityBridge {
       final bool result = await _channel.invokeMethod('canOpenURL', {'url': urlScheme});
       return result;
     } on PlatformException catch (e) {
-      print('Error checking URL scheme: ${e.message}');
+      debugPrint('Error checking URL scheme: ${e.message}');
       return false;
     }
   }
@@ -50,7 +51,7 @@ class NativeSecurityBridge {
       final Map<dynamic, dynamic> result = await _channel.invokeMethod('getSystemProperties');
       return Map<String, String>.from(result);
     } on PlatformException catch (e) {
-      print('Error getting system properties: ${e.message}');
+      debugPrint('Error getting system properties: ${e.message}');
       return {};
     }
   }
@@ -63,7 +64,7 @@ class NativeSecurityBridge {
       final bool result = await _channel.invokeMethod('checkPackages', {'packages': packages});
       return result;
     } on PlatformException catch (e) {
-      print('Error checking packages: ${e.message}');
+      debugPrint('Error checking packages: ${e.message}');
       return false;
     }
   }
@@ -81,7 +82,7 @@ class NativeSecurityBridge {
       }
       return false;
     } on PlatformException catch (e) {
-      print('Error checking developer mode: ${e.message}');
+      debugPrint('Error checking developer mode: ${e.message}');
       return false;
     }
   }
@@ -98,7 +99,7 @@ class NativeSecurityBridge {
       });
       return result;
     } on PlatformException catch (e) {
-      print('Error getting Android settings: ${e.message}');
+      debugPrint('Error getting Android settings: ${e.message}');
       return defaultValue;
     }
   }

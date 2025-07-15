@@ -147,11 +147,15 @@ class SecurityStatusIndicator extends StatelessWidget {
 }
 
 enum ActionType {
-  securityScan,
-  complianceCheck,
-  threatDetection,
-  policyEnforcement,
-  backgroundCheck,
+securityScan,
+complianceCheck,
+threatDetection,
+policyEnforcement,
+backgroundCheck,
+rbiViolation,
+npciViolation,
+transactionBlocked,
+complianceAlert,
 }
 
 enum ActionStatus { success, failed, blocked, warning }
@@ -175,7 +179,7 @@ class ActionItem {
 }
 
 class ActionsListWidget extends StatefulWidget {
-  // This will be connected to your background service data later
+
   final List<ActionItem> actions;
   final VoidCallback? onRefresh;
   const ActionsListWidget({super.key, required this.actions, this.onRefresh});
