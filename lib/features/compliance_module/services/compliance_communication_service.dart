@@ -1,4 +1,3 @@
-// lib/features/compliance_module/services/compliance_communication_service.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'compliance_service.dart';

@@ -81,25 +81,87 @@ appId: transaction.appId,
 details: {'amount': transaction.amount, 'recommendedType': 'RTGS'},
 ));
 }
- return violations.isEmpty
-? ValidationResult.success(transaction)
-: ValidationResult.failure(transaction, violations);
+ if (violations.where((v) => v.severity == ViolationSeverity.critical).isEmpty) {
+    _trackTransactionFrequency(transaction.fromAccount);
+  }
+
+  return violations.isEmpty
+      ? ValidationResult.success(transaction)
+      : ValidationResult.failure(transaction, violations);
 } 
 // Helper method to validate account number format
 bool _isValidAccountNumber(String accountNumber) {
 // Simple validation - in real app, this would be more comprehensive
 return accountNumber.length >= 10 &&
 accountNumber.length <= 18 &&
-RegExp(r'^[0-9]+$').hasMatch(accountNumber);} // Check if account has exceeded daily transaction frequency
-Future<bool> _exceedsTransactionFrequency(String accountNumber) async {
-// In a real app, this would query transaction history
-// For demo purposes, randomly return false
-return false;
-}
+RegExp(r'^[0-9]+$').hasMatch(accountNumber);} 
+
  // Validate if the app is NPCI certified
 Future<bool> isAppNPCICertified(String appId) async {
 // In real implementation, check against NPCI certified app list
 const certifiedApps = ['com.ucobank.securepay', 'com.ucobank.main'];
 return certifiedApps.contains(appId);
 }
+
+// Add these enhanced methods to your NPCIValidationService class
+
+// Transaction frequency tracking
+final Map<String, List<DateTime>> _transactionFrequency = {};
+
+// Enhanced transaction frequency check
+Future<bool> _exceedsTransactionFrequency(String accountNumber) async {
+  final today = DateTime.now();
+  final key = '$accountNumber-${today.toIso8601String().split('T')[0]}';
+  
+  final todayTransactions = _transactionFrequency[key] ?? [];
+  
+  // Clean up old entries (older than 24 hours)
+  final cutoff = today.subtract(Duration(hours: 24));
+  todayTransactions.removeWhere((timestamp) => timestamp.isBefore(cutoff));
+  
+  return todayTransactions.length >= MAX_TRANSACTIONS_PER_DAY;
+}
+
+// Track transaction frequency
+void _trackTransactionFrequency(String accountNumber) {
+  final today = DateTime.now();
+  final key = '$accountNumber-${today.toIso8601String().split('T')[0]}';
+  
+  _transactionFrequency[key] = _transactionFrequency[key] ?? [];
+  _transactionFrequency[key]!.add(today);
+}
+
+
+
+
+// Check if system is overloaded
+Future<bool> _isSystemOverloaded() async {
+  // Simulate system load check
+  final totalTransactions = _transactionFrequency.values
+      .expand((transactions) => transactions)
+      .where((timestamp) => timestamp.isAfter(DateTime.now().subtract(Duration(minutes: 5))))
+      .length;
+  
+  return totalTransactions > 100; // Arbitrary threshold
+}
+
+// Get NPCI compliance metrics
+Future<Map<String, dynamic>> getComplianceMetrics() async {
+  final today = DateTime.now().toIso8601String().split('T')[0];
+  final totalTransactions = _transactionFrequency.values
+      .expand((transactions) => transactions)
+      .length;
+
+  final highVolumeAccounts = _transactionFrequency.entries
+      .where((entry) => entry.key.contains(today) && entry.value.length > 5)
+      .length;
+
+  return {
+    'totalTransactionsToday': totalTransactions,
+    'highVolumeAccounts': highVolumeAccounts,
+    'systemLoad': await _isSystemOverloaded() ? 'high' : 'normal',
+    'lastUpdated': DateTime.now().toIso8601String(),
+  };
+}
+
 }
