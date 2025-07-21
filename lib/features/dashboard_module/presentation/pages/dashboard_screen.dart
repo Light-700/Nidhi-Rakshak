@@ -678,7 +678,7 @@ final complianceService = ServiceProvider.of(context).complianceService;
     actionsService.recordAction(ActionItem(
       title: 'Compliance Check',
       description: result.isFullyCompliant 
-          ? 'All compliance checks passed'
+          ? 'All compliance checks passed' 
           : 'Found ${result.violations.length} compliance violations',
       type: ActionType.complianceCheck,
       status: result.isFullyCompliant ? ActionStatus.success : ActionStatus.warning,

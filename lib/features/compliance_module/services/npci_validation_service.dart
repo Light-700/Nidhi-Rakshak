@@ -57,7 +57,7 @@ if (await _exceedsTransactionFrequency(transaction.fromAccount)) {
 violations.add(ComplianceViolation(
 id: 'NPCI_FREQUENCY_${DateTime.now().millisecondsSinceEpoch}',
 type: 'NPCI Transaction Frequency Violation',
-description: 'Account has exceeded maximum transactions per day (${MAX_TRANSACTIONS_PER_DAY})',
+description: 'Account has exceeded maximum transactions per day ($MAX_TRANSACTIONS_PER_DAY)',
 severity: ViolationSeverity.medium,
 timestamp: DateTime.now(),
 appId: transaction.appId,

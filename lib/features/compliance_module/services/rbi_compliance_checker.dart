@@ -8,9 +8,9 @@ RBIComplianceResult({required this.isCompliant, required this.violations});
 }
  class RBIComplianceChecker {
 // RBI compliance rules
-static const double MFA_THRESHOLD = 5000.0;
-static const double DAILY_TRANSACTION_LIMIT = 100000.0;
-static const int MAX_FAILED_ATTEMPTS = 3;
+static const double mfaThreshold = 5000.0;
+static const double dailyTransactionLimit = 100000.0;
+static const int maxFailedAttempts = 3;
 
 //just for simulation
 Future<RBIComplianceResult> checkRBICompliance() async {
@@ -30,7 +30,7 @@ Future<ValidationResult> validateTransaction(TransactionData transaction) async 
   final violations = <ComplianceViolation>[];
 
   //  Rule 1: MFA required for transactions above ₹5000
-  if (transaction.amount > MFA_THRESHOLD && !transaction.mfaCompleted) {
+  if (transaction.amount > mfaThreshold && !transaction.mfaCompleted) {
     violations.add(ComplianceViolation.rbiMfaViolation(
       transaction.amount,
       transaction.appId,
@@ -38,7 +38,7 @@ Future<ValidationResult> validateTransaction(TransactionData transaction) async 
   }
 
   // Rule 2: Check if transaction amount exceeds daily limit
-  if (transaction.amount > DAILY_TRANSACTION_LIMIT) {
+  if (transaction.amount > dailyTransactionLimit) {
     violations.add(ComplianceViolation(
       id: 'RBI_DAILY_LIMIT_${DateTime.now().millisecondsSinceEpoch}',
       type: 'RBI Daily Limit Violation',
@@ -46,7 +46,7 @@ Future<ValidationResult> validateTransaction(TransactionData transaction) async 
       severity: ViolationSeverity.critical,
       timestamp: DateTime.now(),
       appId: transaction.appId,
-      details: {'amount': transaction.amount, 'limit': DAILY_TRANSACTION_LIMIT},
+      details: {'amount': transaction.amount, 'limit': dailyTransactionLimit},
     ));
   }
 
@@ -84,11 +84,11 @@ Future<ValidationResult> validateTransaction(TransactionData transaction) async 
     violations.add(ComplianceViolation(
       id: 'RBI_ACCOUNT_BLOCKED_${DateTime.now().millisecondsSinceEpoch}',
       type: 'RBI Account Temporarily Blocked',
-      description: 'Account temporarily blocked due to ${MAX_FAILED_ATTEMPTS} failed authentication attempts',
+      description: 'Account temporarily blocked due to $maxFailedAttempts failed authentication attempts',
       severity: ViolationSeverity.critical,
       timestamp: DateTime.now(),
       appId: transaction.appId,
-      details: {'account': transaction.fromAccount, 'maxAttempts': MAX_FAILED_ATTEMPTS},
+      details: {'account': transaction.fromAccount, 'maxAttempts': maxFailedAttempts},
     ));
   }
 
@@ -97,11 +97,11 @@ Future<ValidationResult> validateTransaction(TransactionData transaction) async 
     violations.add(ComplianceViolation(
       id: 'RBI_DAILY_LIMIT_TOTAL_${DateTime.now().millisecondsSinceEpoch}',
       type: 'RBI Daily Transaction Limit Exceeded',
-      description: 'Transaction would exceed daily limit of ₹${DAILY_TRANSACTION_LIMIT.toStringAsFixed(2)}',
+      description: 'Transaction would exceed daily limit of ₹${dailyTransactionLimit.toStringAsFixed(2)}',
       severity: ViolationSeverity.high,
       timestamp: DateTime.now(),
       appId: transaction.appId,
-      details: {'amount': transaction.amount, 'dailyLimit': DAILY_TRANSACTION_LIMIT},
+      details: {'amount': transaction.amount, 'dailyLimit': dailyTransactionLimit},
     ));
   }
 
@@ -149,13 +149,13 @@ Future<bool> _checkDailyLimit(String accountNumber, double amount) async {
   final todayTransactions = _dailyTransactionHistory['$accountNumber-$today'] ?? [];
   
   final totalToday = todayTransactions.fold<double>(0, (sum, t) => sum + t.amount);
-  return (totalToday + amount) <= DAILY_TRANSACTION_LIMIT;
+  return (totalToday + amount) <= dailyTransactionLimit;
 }
 
 // Check if account is temporarily blocked due to failed attempts
 bool _isAccountBlocked(String accountNumber) {
   final key = '$accountNumber-${DateTime.now().toIso8601String().split('T')[0]}';
-  return (_failedAttempts[key] ?? 0) >= MAX_FAILED_ATTEMPTS;
+  return (_failedAttempts[key] ?? 0) >= maxFailedAttempts;
 }
 
 // Track failed authentication attempts
