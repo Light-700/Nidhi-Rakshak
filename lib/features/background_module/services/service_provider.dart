@@ -4,6 +4,7 @@ import 'package:nidhi_rakshak/features/background_module/services/security_servi
 import 'package:nidhi_rakshak/features/compliance_module/services/compliance_service.dart';
 import 'package:nidhi_rakshak/features/compliance_module/services/rbi_compliance_checker.dart';
 import 'package:nidhi_rakshak/features/compliance_module/services/npci_validation_service.dart';
+import 'package:nidhi_rakshak/features/compliance_module/services/compliance_communication_service.dart';
 
 class ServiceProvider extends InheritedWidget {
   final SecurityService securityService;
@@ -19,7 +20,7 @@ class ServiceProvider extends InheritedWidget {
   });
 
   static ServiceProvider of(BuildContext context) {
-    final ServiceProvider? result = 
+    final ServiceProvider? result =
         context.dependOnInheritedWidgetOfExactType<ServiceProvider>();
     assert(result != null, 'No ServiceProvider found in context');
     return result!;
@@ -28,15 +29,16 @@ class ServiceProvider extends InheritedWidget {
   @override
   bool updateShouldNotify(ServiceProvider oldWidget) {
     return securityService != oldWidget.securityService ||
-           securityActionsService != oldWidget.securityActionsService ||
-           complianceService != oldWidget.complianceService; 
+        securityActionsService != oldWidget.securityActionsService ||
+        complianceService != oldWidget.complianceService;
   }
 }
 
 class AppServices {
   static final SecurityService security = SecurityService();
   static final SecurityActionsService actions = SecurityActionsService();
-//for compliance module
+  
+  // For compliance module
   static final RBIComplianceChecker _rbiChecker = RBIComplianceChecker();
   static final NPCIValidationService _npciValidator = NPCIValidationService();
   static final ComplianceService compliance = ComplianceService(_rbiChecker, _npciValidator);
@@ -44,12 +46,22 @@ class AppServices {
   // Initialize all services
   static Future<void> initialize() async {
     await security.initialize();
+    
+    // Initialize compliance communication with all necessary services
+    await ComplianceCommunicationService.initialize(
+      compliance,
+      security,
+      actions,
+    );
+    
+    // Start compliance monitoring
+    await compliance.startMonitoring();
   }
 
   // Dispose all services
   static void dispose() {
     security.dispose();
     actions.dispose();
-    compliance.dispose(); 
+    compliance.dispose();
   }
 }

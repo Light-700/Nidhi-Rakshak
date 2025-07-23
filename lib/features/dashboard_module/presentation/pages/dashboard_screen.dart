@@ -78,6 +78,16 @@ final complianceService = ServiceProvider.of(context).complianceService;
     });
   }
 }
+
+List<SecurityThreat> _getComplianceThreats() {
+  final securityStatus = _securityStatus ?? SecurityStatus.secure();
+  return securityStatus.detectedThreats.where((threat) => 
+    threat.name.contains('Compliance Violation') || 
+    threat.name.contains('RBI') ||
+    threat.name.contains('NPCI')
+  ).toList();
+}
+
   @override
   Widget build(BuildContext context) {    
     // Use the security status from our service, or default to secure if null
@@ -208,87 +218,120 @@ final complianceService = ServiceProvider.of(context).complianceService;
   }
 
   // Widget to display security threats
-  Widget _buildSecurityThreatsCard() {
-    // Use the security status from our service, or default to secure if null
-    final securityStatus = _securityStatus ?? SecurityStatus.secure();
-    final threats = securityStatus.detectedThreats;
-    
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Security Threats',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 22,
-                  ),
+Widget _buildSecurityThreatsCard() {
+  final securityStatus = _securityStatus ?? SecurityStatus.secure();
+  final threats = securityStatus.detectedThreats;
+  final complianceThreats = _getComplianceThreats();
+  
+  return Card(
+    elevation: 4,
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Security Threats',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 22,
                 ),
-                threats.isEmpty 
-                  ? Icon(Icons.verified, color: Colors.green)
-                  : Icon(Icons.warning_amber, color: Colors.orange)
-              ],
+              ),
+              threats.isEmpty 
+                ? Icon(Icons.verified, color: Colors.green)
+                : Icon(Icons.warning_amber, color: Colors.orange)
+            ],
+          ),
+          
+          // Show compliance status if there are compliance threats
+          if (complianceThreats.isNotEmpty) ...[
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error, color: Colors.red, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Not RBI/NPCI Compliant',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 16),
-            if (threats.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.security, 
-                        color: Colors.green, 
-                        size: 48,
+          ],
+          
+          SizedBox(height: 16),
+          if (threats.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.security, 
+                      color: Colors.green, 
+                      size: 48,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'No security threats detected',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.green,
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'No security threats detected',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.green,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: threats.length,
-                itemBuilder: (context, index) {
-                  final threat = threats[index];
-                  Color threatColor;
-                  IconData threatIcon;
-                  
-                  // Choose color and icon based on threat level
-                  switch (threat.level) {
-                    case SecurityThreatLevel.critical:
-                      threatColor = Colors.red;
-                      threatIcon = Icons.error;
-                      break;
-                    case SecurityThreatLevel.high:
-                      threatColor = Colors.orange;
-                      threatIcon = Icons.warning;
-                      break;
-                    case SecurityThreatLevel.medium:
-                      threatColor = Colors.amber;
-                      threatIcon = Icons.info;
-                      break;                    case SecurityThreatLevel.low:
-                      threatColor = Colors.blue;
-                      threatIcon = Icons.info_outline;
-                      break;
-                  }
-                  
-                  return ListTile(
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: threats.length,
+              itemBuilder: (context, index) {
+                final threat = threats[index];
+                Color threatColor;
+                IconData threatIcon;
+                
+                // Special handling for compliance threats
+                bool isComplianceThreat = threat.name.contains('Compliance Violation');
+                
+                switch (threat.level) {
+                  case SecurityThreatLevel.critical:
+                    threatColor = Colors.red;
+                    threatIcon = isComplianceThreat ? Icons.gavel : Icons.error;
+                    break;
+                  case SecurityThreatLevel.high:
+                    threatColor = Colors.orange;
+                    threatIcon = isComplianceThreat ? Icons.gavel : Icons.warning;
+                    break;
+                  case SecurityThreatLevel.medium:
+                    threatColor = Colors.amber;
+                    threatIcon = isComplianceThreat ? Icons.gavel : Icons.info;
+                    break;
+                  case SecurityThreatLevel.low:
+                    threatColor = Colors.blue;
+                    threatIcon = isComplianceThreat ? Icons.gavel : Icons.info_outline;
+                    break;
+                }
+                
+                return Card(
+                  margin: EdgeInsets.symmetric(vertical: 4),
+                  color: isComplianceThreat ? Colors.red.withValues(alpha: 0.05) : null,
+                  child: ListTile(
                     leading: Icon(
                       threatIcon,
                       color: threatColor,
@@ -299,17 +342,35 @@ final complianceService = ServiceProvider.of(context).complianceService;
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    subtitle: Text(threat.description),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(threat.description),
+                        if (isComplianceThreat) ...[
+                          SizedBox(height: 4),
+                          Text(
+                            'This violation affects RBI/NPCI compliance',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                     trailing: _getThreatLevelBadge(threat.level),
-                  );
-                },
-              ),
-          ],
-        ),
+                    isThreeLine: isComplianceThreat,
+                  ),
+                );
+              },
+            ),
+        ],
       ),
-    );
-  }
-  
+    ),
+  );
+}
+
   // Helper widget to display threat level badge
   Widget _getThreatLevelBadge(SecurityThreatLevel level) {
     String text;
