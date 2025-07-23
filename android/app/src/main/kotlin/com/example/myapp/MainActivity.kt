@@ -2,6 +2,8 @@ package com.example.myapp
 
 import android.content.Context
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -14,6 +16,7 @@ import android.os.Build
 class MainActivity: FlutterActivity() {
     private val COMPLIANCE_CHANNEL = "com.ucobank.compliance"
     private lateinit var complianceChannel: MethodChannel
+    private lateinit var securityReceiver: SecurityReceiver
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -24,6 +27,7 @@ class MainActivity: FlutterActivity() {
         }
         
         createNotificationChannel()
+        setupSecurityReceiver()
     }
 
     private fun handleMethodCall(call: MethodCall, result: Result) {
@@ -45,7 +49,11 @@ class MainActivity: FlutterActivity() {
         try {
             // Start background compliance monitoring service
             val intent = Intent(this, ComplianceMonitoringService::class.java)
-            startForegroundService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
             result.success(true)
         } catch (e: Exception) {
             result.error("INIT_ERROR", "Failed to initialize compliance monitoring", e.message)
@@ -71,6 +79,19 @@ class MainActivity: FlutterActivity() {
         }
     }
 
+    private fun setupSecurityReceiver() {
+        securityReceiver = SecurityReceiver()
+        val filter = IntentFilter().apply {
+            addAction("com.ucobank.INITIALIZE_SECURITY")
+            addAction("com.ucobank.APP_LAUNCH")
+            addAction("com.ucobank.MFA_ATTEMPT")
+            addAction("com.ucobank.TRANSACTION_CLEARANCE")
+            addAction("com.ucobank.VALIDATE_TRANSACTION")
+            addAction("com.ucobank.CHECK_COMPLIANCE")
+        }
+        registerReceiver(securityReceiver, filter)
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -82,5 +103,52 @@ class MainActivity: FlutterActivity() {
             manager.createNotificationChannel(channel)
         }
     }
-}
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::securityReceiver.isInitialized) {
+            unregisterReceiver(securityReceiver)
+        }
+    }
+
+    inner class SecurityReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.let {
+                when (it.action) {
+                    "com.ucobank.INITIALIZE_SECURITY" -> {
+                        // Handle security initialization
+                        val appId = it.getStringExtra("appId") ?: ""
+                        complianceChannel.invokeMethod("securityInitialized", mapOf(
+                            "appId" to appId,
+                            "status" to "initialized"
+                        ))
+                    }
+                    "com.ucobank.APP_LAUNCH" -> {
+                        // Handle app launch report
+                        val appPackage = it.getStringExtra("appPackage") ?: ""
+                        complianceChannel.invokeMethod("appLaunchReported", mapOf(
+                            "appPackage" to appPackage,
+                            "timestamp" to it.getStringExtra("timestamp")
+                        ))
+                    }
+                    "com.ucobank.MFA_ATTEMPT" -> {
+                        // Handle MFA attempt report
+                        val mfaType = it.getStringExtra("mfaType") ?: ""
+                        val success = it.getBooleanExtra("success", false)
+                        complianceChannel.invokeMethod("mfaAttemptReported", mapOf(
+                            "mfaType" to mfaType,
+                            "success" to success
+                        ))
+                    }
+                    "com.ucobank.TRANSACTION_CLEARANCE" -> {
+                        // Handle transaction clearance request
+                        val transactionData = it.getStringExtra("transactionData") ?: ""
+                        complianceChannel.invokeMethod("transactionClearanceRequested", mapOf(
+                            "transactionData" to transactionData
+                        ))
+                    }
+                }
+            }
+        }
+    }
+}
