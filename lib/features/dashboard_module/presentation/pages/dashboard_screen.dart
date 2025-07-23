@@ -4,6 +4,7 @@ import 'package:nidhi_rakshak/features/dashboard_module/presentation/widgets.dar
 import 'package:nidhi_rakshak/src/settings/settings_view.dart';
 import 'package:nidhi_rakshak/features/background_module/services/service_provider.dart';
 import 'package:nidhi_rakshak/src/theme/gradient_theme.dart';
+import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/more_apps_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,19 +20,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // Security status
   SecurityStatus? _securityStatus;
-  
+
   // Recent actions
-  List<ActionItem> _recentActions = [];  @override
+  List<ActionItem> _recentActions = [];
+  @override
   void initState() {
     super.initState();
-    
+
     // We need to use addPostFrameCallback since we need context
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupListeners();
       _loadData();
     });
   }
-  
+
   void _setupListeners() {
     // Listen for security status updates
     ServiceProvider.of(context).securityService.securityStream.listen((status) {
@@ -41,9 +43,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     });
-    
+
     // Listen for action updates
-    ServiceProvider.of(context).securityActionsService.actionsStream.listen((actions) {
+    ServiceProvider.of(context).securityActionsService.actionsStream.listen((
+      actions,
+    ) {
       if (mounted) {
         setState(() {
           _recentActions = actions;
@@ -51,14 +55,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     });
   }
-  
+
   Future<void> _loadData() async {
     // Get initial security status
-    final securityStatus = ServiceProvider.of(context).securityService.lastStatus;
-    
+    final securityStatus = ServiceProvider.of(
+      context,
+    ).securityService.lastStatus;
+
     // Get initial actions
-    final actions = ServiceProvider.of(context).securityActionsService.getRecentActions();
-    
+    final actions = ServiceProvider.of(
+      context,
+    ).securityActionsService.getRecentActions();
+
     if (mounted) {
       setState(() {
         _securityStatus = securityStatus;
@@ -66,27 +74,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
     }
   }
+
   @override
-  Widget build(BuildContext context) {    
+  Widget build(BuildContext context) {
     // Use the security status from our service, or default to secure if null
     final securityStatus = _securityStatus ?? SecurityStatus.secure();
-    
+
     return Container(
       decoration: BoxDecoration(
-      gradient: AppGradients.getBackgroundGradient(context),
-    ),
+        gradient: AppGradients.getBackgroundGradient(context),
+      ),
       child: Scaffold(
-     backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: Text('Security Dashboard'),
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.white 
-          : Colors.black,
+        appBar: AppBar(
+          title: Text('Security Dashboard'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          foregroundColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black,
           actions: [
             IconButton(
+              icon: Icon(Icons.apps),
+              tooltip: 'More Apps',
+              onPressed: () {
+                // Navigate to more apps
+                Navigator.pushNamed(context, MoreAppsScreen.routeName);
+              },
+            ),
+            IconButton(
               icon: Icon(Icons.settings),
+              tooltip: 'Settings',
               onPressed: () {
                 // Navigate to settings
                 Navigator.pushNamed(context, SettingsView.routeName);
@@ -99,8 +117,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: SingleChildScrollView(
             padding: EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,           
-               children: [
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 // Security Status Section
                 SecurityStatusIndicator(
                   lastChecked: securityStatus.lastChecked,
@@ -111,26 +129,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   isJailbroken: securityStatus.isJailbroken,
                   isRooted: securityStatus.isRooted,
                 ),
-      
+
                 SizedBox(height: 16),
-                  // Security Threats Section
+                // Security Threats Section
                 _buildSecurityThreatsCard(),
-                
+
                 SizedBox(height: 16),
-                
+
                 // Suspicious Apps Section
                 _buildSuspiciousAppsCard(),
-                
+
                 SizedBox(height: 16),
-      
+
                 // Actions List Section
                 ActionsListWidget(
                   actions: _recentActions,
                   onRefresh: _refreshActions,
                 ),
-      
+
                 SizedBox(height: 16),
-      
+
                 // Quick Actions Section
                 _buildQuickActionsCard(),
               ],
@@ -208,7 +226,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Use the security status from our service, or default to secure if null
     final securityStatus = _securityStatus ?? SecurityStatus.secure();
     final threats = securityStatus.detectedThreats;
-    
+
     return Card(
       elevation: 4,
       child: Padding(
@@ -226,9 +244,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fontSize: 22,
                   ),
                 ),
-                threats.isEmpty 
-                  ? Icon(Icons.verified, color: Colors.green)
-                  : Icon(Icons.warning_amber, color: Colors.orange)
+                threats.isEmpty
+                    ? Icon(Icons.verified, color: Colors.green)
+                    : Icon(Icons.warning_amber, color: Colors.orange),
               ],
             ),
             SizedBox(height: 16),
@@ -238,18 +256,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Icon(
-                        Icons.security, 
-                        color: Colors.green, 
-                        size: 48,
-                      ),
+                      Icon(Icons.security, color: Colors.green, size: 48),
                       SizedBox(height: 8),
                       Text(
                         'No security threats detected',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.green,
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.green),
                       ),
                     ],
                   ),
@@ -264,7 +275,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   final threat = threats[index];
                   Color threatColor;
                   IconData threatIcon;
-                  
+
                   // Choose color and icon based on threat level
                   switch (threat.level) {
                     case SecurityThreatLevel.critical:
@@ -278,22 +289,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     case SecurityThreatLevel.medium:
                       threatColor = Colors.amber;
                       threatIcon = Icons.info;
-                      break;                    case SecurityThreatLevel.low:
+                      break;
+                    case SecurityThreatLevel.low:
                       threatColor = Colors.blue;
                       threatIcon = Icons.info_outline;
                       break;
                   }
-                  
+
                   return ListTile(
-                    leading: Icon(
-                      threatIcon,
-                      color: threatColor,
-                    ),
+                    leading: Icon(threatIcon, color: threatColor),
                     title: Text(
                       threat.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(threat.description),
                     trailing: _getThreatLevelBadge(threat.level),
@@ -305,12 +312,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
+
   // Helper widget to display threat level badge
   Widget _getThreatLevelBadge(SecurityThreatLevel level) {
     String text;
     Color color;
-    
+
     switch (level) {
       case SecurityThreatLevel.critical:
         text = 'CRITICAL';
@@ -329,11 +336,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color = Colors.blue;
         break;
     }
-    
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha:0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color),
       ),
@@ -347,20 +354,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
+
   // Get suspicious app threats from all threats
   List<SecurityThreat> _getSuspiciousAppThreats() {
     final securityStatus = _securityStatus ?? SecurityStatus.secure();
-    return securityStatus.detectedThreats.where((threat) => 
-      threat.name.contains('Suspicious App') || 
-      threat.name.contains('Harmful App')
-    ).toList();
+    return securityStatus.detectedThreats
+        .where(
+          (threat) =>
+              threat.name.contains('Suspicious App') ||
+              threat.name.contains('Harmful App'),
+        )
+        .toList();
   }
-  
+
   // Widget to display suspicious apps
   Widget _buildSuspiciousAppsCard() {
     final suspiciousApps = _getSuspiciousAppThreats();
-    
+
     return Card(
       elevation: 4,
       child: Padding(
@@ -374,15 +384,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Flexible(
                   child: Text(
                     'Suspicious Applications',
-                    style:TextStyle( 
-                          color: Theme.of(context).colorScheme.primary, 
-                          fontSize: 22,
-                        ),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 22,
+                    ),
                   ),
                 ),
-                suspiciousApps.isEmpty 
-                  ? Icon(Icons.verified, color: Colors.green)
-                  : Icon(Icons.warning_amber, color: Colors.red)
+                suspiciousApps.isEmpty
+                    ? Icon(Icons.verified, color: Colors.green)
+                    : Icon(Icons.warning_amber, color: Colors.red),
               ],
             ),
             SizedBox(height: 16),
@@ -392,18 +402,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Icon(
-                        Icons.app_blocking, 
-                        color: Colors.green, 
-                        size: 48,
-                      ),
+                      Icon(Icons.app_blocking, color: Colors.green, size: 48),
                       SizedBox(height: 8),
                       Text(
                         'No suspicious apps detected',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.green,
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.green),
                       ),
                     ],
                   ),
@@ -414,9 +417,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Text(
                     'The following apps might pose a security risk:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 12),
                   ListView.builder(
@@ -425,11 +426,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     itemCount: suspiciousApps.length,
                     itemBuilder: (context, index) {
                       final app = suspiciousApps[index];
-                      
+
                       // Extract app name if available
                       String appName = "Unknown App";
                       String appDescription = app.description;
-                      
+
                       // Try to parse out app name from the description
                       if (appDescription.contains(":")) {
                         final parts = appDescription.split(":");
@@ -439,20 +440,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           appDescription = parts[0];
                         }
                       }
-                      
+
                       return Card(
                         elevation: 2,
                         margin: EdgeInsets.symmetric(vertical: 8.0),
                         child: ListTile(
-                          leading: Icon(
-                            Icons.dangerous,
-                            color: Colors.red,
-                          ),
+                          leading: Icon(Icons.dangerous, color: Colors.red),
                           title: Text(
                             appName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,7 +459,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ],
                           ),
                           trailing: ElevatedButton(
-                            
                             onPressed: () => _showAppDetails(app),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
@@ -483,7 +478,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
+
   // Show detailed information about a suspicious app
   void _showAppDetails(SecurityThreat app) {
     showDialog(
@@ -506,16 +501,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             Text(app.name),
             SizedBox(height: 16),
-            Text(
-              'Description:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            Text('Description:', style: TextStyle(fontWeight: FontWeight.bold)),
             Text(app.description),
             SizedBox(height: 16),
-            Text(
-              'Risk Level:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            Text('Risk Level:', style: TextStyle(fontWeight: FontWeight.bold)),
             _getThreatLevelBadge(app.level),
             SizedBox(height: 16),
             Text(
@@ -535,19 +524,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Navigator.pop(context);
               // In a real app, this would navigate to app settings or uninstall flow
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('This would navigate to app settings in a real app')),
+                SnackBar(
+                  content: Text(
+                    'This would navigate to app settings in a real app',
+                  ),
+                ),
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text('Take Action'),
           ),
         ],
       ),
     );
   }
-  
+
   // Get recommended action based on threat level
   String _getRecommendedAction(SecurityThreatLevel level) {
     switch (level) {
@@ -561,7 +552,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return 'Monitor this app\'s behavior and consider reviewing its permissions.';
     }
   }
-  
+
   Future<void> _refreshDashboard() async {
     setState(() {
       _isLoading = true;
@@ -570,17 +561,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       // Get security service
       final securityService = ServiceProvider.of(context).securityService;
-      
+
       // Refresh security status
       final updatedStatus = await securityService.refreshSecurityStatus();
-      
+
       // Update state
       setState(() {
         _securityStatus = updatedStatus;
       });
     } catch (e) {
       // Handle errors
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error refreshing security data: $e')),
       );
@@ -597,10 +588,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       // Get action service
       final actionsService = ServiceProvider.of(context).securityActionsService;
-      
+
       // Refresh actions
       final actions = actionsService.getRecentActions();
-      
+
       // Update state
       if (mounted) {
         setState(() {
@@ -609,40 +600,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     } catch (e) {
       // Handle errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error refreshing actions: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error refreshing actions: $e')));
     }
   }
+
   Future<void> _runSecurityScan() async {
     // Show progress indicator
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Running security scan...')),
-    );
-    
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Running security scan...')));
+
     try {
       // Get security service
       final securityService = ServiceProvider.of(context).securityService;
       final actionsService = ServiceProvider.of(context).securityActionsService;
-      
+
       // Run security scan
       final result = await securityService.runFullSecurityScan();
-      
+
       // Record the action
       actionsService.recordSecurityScan(
         wasSuccessful: result.isDeviceSecure,
-        details: result.detectedThreats.isNotEmpty 
-            ? 'Found ${result.detectedThreats.length} security threats' 
+        details: result.detectedThreats.isNotEmpty
+            ? 'Found ${result.detectedThreats.length} security threats'
             : 'No security threats detected',
       );
-      
+
       // Update security status in state
       setState(() {
         _securityStatus = result;
       });
-      
+
       // Update UI
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -655,7 +647,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     } catch (e) {
       // Handle errors
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error during security scan: $e'),
@@ -668,10 +660,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _checkCompliance() {
     // Since compliance checks are to be implemented later,
     // we'll keep this as a placeholder
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Compliance check initiated...')),
-    );
-    
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Compliance check initiated...')));
+
     // This is where we would integrate with RBI/NPCI compliance checks later
   }
 }

@@ -16,6 +16,7 @@ import 'settings/settings_view.dart';
 //screens
 //import 'screens/home_screen.dart';
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/dashboard_screen.dart';
+import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/more_apps_screen.dart';
 
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {
@@ -69,13 +70,13 @@ class MyApp extends StatelessWidget {
           theme:  ThemeData(
           primaryColor: const Color.fromARGB(255, 32, 45, 191),
           scaffoldBackgroundColor: Colors.transparent, // Allow gradients to show
-           fontFamily: 'Roboto',
+            fontFamily: 'Roboto',
             brightness: Brightness.light,
           ),
           darkTheme: ThemeData.dark().copyWith(
           primaryColor: const Color.fromARGB(255, 100, 110, 213),
           scaffoldBackgroundColor: Colors.transparent,
-           brightness: Brightness.dark,
+            brightness: Brightness.dark,
           ),
           themeMode: settingsController.themeMode,
           home: DashboardScreen(),
@@ -89,6 +90,8 @@ class MyApp extends StatelessWidget {
                 switch (routeSettings.name) {
                   case SettingsView.routeName:
                     return SettingsView(controller: settingsController);
+                  case MoreAppsScreen.routeName:
+                    return const MoreAppsScreen();
                   case SampleItemDetailsView.routeName:
                     return const SampleItemDetailsView();
                   case SampleItemListView.routeName:
