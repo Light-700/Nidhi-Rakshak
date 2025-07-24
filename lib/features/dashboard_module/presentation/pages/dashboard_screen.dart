@@ -95,6 +95,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               : Colors.black,
           actions: [
             IconButton(
+              icon: Icon(Icons.security),
+              tooltip: 'Security Scanner',
+              onPressed: () {
+                // Navigate to security scanner
+                Navigator.pushNamed(context, '/security-scanner');
+              },
+            ),
+            IconButton(
               icon: Icon(Icons.apps),
               tooltip: 'More Apps',
               onPressed: () {

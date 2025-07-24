@@ -17,6 +17,7 @@ import 'settings/settings_view.dart';
 //import 'screens/home_screen.dart';
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/dashboard_screen.dart';
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/more_apps_screen.dart';
+import 'package:nidhi_rakshak/features/security_module/presentation/pages/security_scanner_screen.dart';
 
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {
@@ -92,6 +93,8 @@ class MyApp extends StatelessWidget {
                     return SettingsView(controller: settingsController);
                   case MoreAppsScreen.routeName:
                     return const MoreAppsScreen();
+                  case SecurityScannerScreen.routeName:
+                    return const SecurityScannerScreen();
                   case SampleItemDetailsView.routeName:
                     return const SampleItemDetailsView();
                   case SampleItemListView.routeName:
