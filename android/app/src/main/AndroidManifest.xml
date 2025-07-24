@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
+    
+    <!-- ADD THESE PERMISSIONS -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -8,7 +9,8 @@
         android:label="myapp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-
+        
+        <!-- YOUR EXISTING ACTIVITY -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -27,7 +29,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
+        
+        <!-- ADD THIS: COMPLIANCE MONITORING SERVICE -->
         <service
             android:name=".ComplianceMonitoringService"
             android:enabled="true"
@@ -37,34 +40,14 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="compliance_monitoring" />
         </service>
-
-        <receiver 
-            android:name=".ComplianceReceiver" 
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter android:priority="1000">
-                <action android:name="com.ucobank.COMPLIANCE_STATUS" />
-                <action android:name="com.ucobank.VALIDATE_TRANSACTION" />
-                <action android:name="com.ucobank.COMPLIANCE_VIOLATION" />
-            </intent-filter>
-        </receiver>
-
-        <receiver 
-            android:name=".BootReceiver" 
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter android:priority="1000">
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data android:scheme="package" />
-            </intent-filter>
-        </receiver>
-
+        
+        <!-- YOUR EXISTING META-DATA -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
+    
+    <!-- YOUR EXISTING QUERIES -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>

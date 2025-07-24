@@ -32,21 +32,68 @@ class ComplianceCommunicationService {
     }
   }
 
+
   static Future<dynamic> _handleMethodCall(MethodCall call) async {
-    switch (call.method) {
-      case 'validateTransaction':
-        return await _validateTransaction(call.arguments);
-      case 'checkCompliance':
-        return await _checkCompliance();
-      case 'reportViolation':
-        return await _reportViolation(call.arguments);
-      default:
-        throw PlatformException(
-          code: 'UNIMPLEMENTED',
-          message: 'Method ${call.method} not implemented',
-        );
-    }
+  switch (call.method) {
+    case 'validateTransaction':
+      return await _validateTransaction(call.arguments);
+    case 'checkCompliance':
+      return await _checkCompliance();
+    case 'reportViolation':
+      return await _reportViolation(call.arguments);
+    case 'validateTransactionFromNative':
+      return await _handleNativeValidation(call.arguments);
+    default:
+      throw PlatformException(
+        code: 'UNIMPLEMENTED',
+        message: 'Method ${call.method} not implemented',
+      );
   }
+}
+
+// ADD THIS METHOD: Handle validation requests from native Android bridge
+static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic> args) async {
+  if (_complianceService == null) {
+    return {
+      'isValid': false,
+      'message': 'Compliance service not initialized',
+      'violations': ['SERVICE_NOT_INITIALIZED'],
+    };
+  }
+
+  try {
+    // Extract transaction data from native call
+    final transactionData = Map<String, dynamic>.from(args);
+    
+    // Call your REAL compliance validation logic
+    final result = await _complianceService!.validateTransaction(transactionData);
+    
+    // Convert violations to security threats if needed
+    if (!result.isValid && result.violations.isNotEmpty) {
+      await _convertViolationsToSecurityThreats(result.violations, transactionData);
+    }
+    
+    // Return actual validation result
+    return {
+      'isValid': result.isValid,
+      'message': result.message,
+      'violations': result.violations.map((v) => {
+        'type': v.type,
+        'description': v.description,
+        'severity': v.severity.toString(),
+        'timestamp': v.timestamp.toIso8601String(),
+      }).toList(),
+    };
+  } catch (e) {
+    debugPrint('Error in native validation: $e');
+    return {
+      'isValid': false,
+      'message': 'Validation error: $e',
+      'violations': ['VALIDATION_ERROR'],
+    };
+  }
+}
+
 
   static Future<Map<String, dynamic>> _validateTransaction(Map<String, dynamic> transactionData) async {
     if (_complianceService == null) {
