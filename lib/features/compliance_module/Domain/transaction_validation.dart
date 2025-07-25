@@ -1,4 +1,4 @@
-import '../domain/compliance_status.dart';
+import '../Domain/compliance_status.dart';
 
 class TransactionData {
   final String id;

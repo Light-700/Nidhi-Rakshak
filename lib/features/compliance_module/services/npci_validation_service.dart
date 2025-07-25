@@ -1,6 +1,6 @@
 // lib/features/compliance_module/services/npci_validation_service.dart
-import '../domain/compliance_status.dart';
-import '../domain/transaction_validation.dart';
+import '../Domain/compliance_status.dart';
+import '../Domain/transaction_validation.dart';
 class NPCIComplianceResult {
 final bool isCompliant;
 final List<ComplianceViolation> violations;

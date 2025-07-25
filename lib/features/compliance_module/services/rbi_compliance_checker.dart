@@ -1,6 +1,6 @@
 // lib/features/compliance_module/services/rbi_compliance_checker.dart
-import '../domain/compliance_status.dart';
-import '../domain/transaction_validation.dart';
+import '../Domain/compliance_status.dart';
+import '../Domain/transaction_validation.dart';
 class RBIComplianceResult {
 final bool isCompliant;
 final List<ComplianceViolation> violations;
