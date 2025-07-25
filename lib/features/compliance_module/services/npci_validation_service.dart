@@ -70,7 +70,6 @@ details: {
 
 // Rule 4: Validate transaction type appropriateness
 if (transaction.amount >= RTGS_MIN_AMOUNT) {
-// For large amounts, suggest RTGS instead of UPI
 violations.add(ComplianceViolation(
 id: 'NPCI_RTGS_RECOMMENDED_${DateTime.now().millisecondsSinceEpoch}',
 type: 'NPCI Transaction Type Recommendation',
