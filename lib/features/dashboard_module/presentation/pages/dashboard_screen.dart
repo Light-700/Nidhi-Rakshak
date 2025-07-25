@@ -3,6 +3,8 @@ import 'package:nidhi_rakshak/features/background_module/services/security/secur
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/widgets.dart';
 import 'package:nidhi_rakshak/src/settings/settings_view.dart';
 import 'package:nidhi_rakshak/features/background_module/services/service_provider.dart';
+
+import 'package:nidhi_rakshak/features/compliance_module/domain/compliance_status.dart';
 import 'package:nidhi_rakshak/src/theme/gradient_theme.dart';
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/more_apps_screen.dart';
 
@@ -18,12 +20,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ignore: unused_field
   bool _isLoading = false;
 
-  // Security status
   SecurityStatus? _securityStatus;
 
-  // Recent actions
-  List<ActionItem> _recentActions = [];
-  @override
+  ComplianceStatus? _complianceStatus;
+  List<ActionItem> _recentActions = []; 
+   @override
   void initState() {
     super.initState();
 
@@ -54,7 +55,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     });
-  }
+
+final complianceService = ServiceProvider.of(context).complianceService;
+  complianceService.complianceStream.listen((status) {
+    if (mounted) {
+      setState(() {
+        _complianceStatus = status;
+      });
+    }
+  });
+}
+  
 
   Future<void> _loadData() async {
     // Get initial security status
@@ -63,17 +74,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ).securityService.lastStatus;
 
     // Get initial actions
-    final actions = ServiceProvider.of(
-      context,
-    ).securityActionsService.getRecentActions();
-
-    if (mounted) {
-      setState(() {
-        _securityStatus = securityStatus;
-        _recentActions = actions;
-      });
-    }
+    final actions = ServiceProvider.of(context).securityActionsService.getRecentActions();
+    
+   final complianceService = ServiceProvider.of(context).complianceService;
+  final complianceStatus = complianceService.lastStatus;
+  
+  if (mounted) {
+    setState(() {
+      _securityStatus = securityStatus;
+      _recentActions = actions;
+      _complianceStatus = complianceStatus;
+    });
   }
+}
+
+List<SecurityThreat> _getComplianceThreats() {
+  final securityStatus = _securityStatus ?? SecurityStatus.secure();
+  return securityStatus.detectedThreats.where((threat) => 
+    threat.name.contains('Compliance Violation') || 
+    threat.name.contains('RBI') ||
+    threat.name.contains('NPCI')
+  ).toList();
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -127,16 +150,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Security Status Section
                 SecurityStatusIndicator(
-                  lastChecked: securityStatus.lastChecked,
-                  // Values from our security service
-                  isDeviceSecure: securityStatus.isDeviceSecure,
-                  isRbiCompliant: false, // To be implemented later
-                  isNpciCompliant: false, // To be implemented later
-                  isJailbroken: securityStatus.isJailbroken,
-                  isRooted: securityStatus.isRooted,
-                ),
+                lastChecked: securityStatus.lastChecked,
+                // Values from our security service
+                isDeviceSecure: securityStatus.isDeviceSecure,
+                isRbiCompliant: _complianceStatus?.isRbiCompliant ?? false,
+                isNpciCompliant: _complianceStatus?.isNpciCompliant ?? false,
+                isJailbroken: securityStatus.isJailbroken,
+                isRooted: securityStatus.isRooted,
+              ),
 
                 SizedBox(height: 16),
                 // Security Threats Section
@@ -230,96 +252,158 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // Widget to display security threats
-  Widget _buildSecurityThreatsCard() {
-    // Use the security status from our service, or default to secure if null
-    final securityStatus = _securityStatus ?? SecurityStatus.secure();
-    final threats = securityStatus.detectedThreats;
-
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Security Threats',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 22,
-                  ),
+Widget _buildSecurityThreatsCard() {
+  final securityStatus = _securityStatus ?? SecurityStatus.secure();
+  final threats = securityStatus.detectedThreats;
+  final complianceThreats = _getComplianceThreats();
+  
+  return Card(
+    elevation: 4,
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Security Threats',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 22,
                 ),
-                threats.isEmpty
-                    ? Icon(Icons.verified, color: Colors.green)
-                    : Icon(Icons.warning_amber, color: Colors.orange),
-              ],
+              ),
+              threats.isEmpty 
+                ? Icon(Icons.verified, color: Colors.green)
+                : Icon(Icons.warning_amber, color: Colors.orange)
+            ],
+          ),
+          
+          // Show compliance status if there are compliance threats
+          if (complianceThreats.isNotEmpty) ...[
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error, color: Colors.red, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Not RBI/NPCI Compliant',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 16),
-            if (threats.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Icon(Icons.security, color: Colors.green, size: 48),
-                      SizedBox(height: 8),
-                      Text(
-                        'No security threats detected',
-                        style: TextStyle(fontSize: 16, color: Colors.green),
+          ],
+          
+          SizedBox(height: 16),
+          if (threats.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.security, 
+                      color: Colors.green, 
+                      size: 48,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'No security threats detected',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.green,
+
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: threats.length,
-                itemBuilder: (context, index) {
-                  final threat = threats[index];
-                  Color threatColor;
-                  IconData threatIcon;
-
-                  // Choose color and icon based on threat level
-                  switch (threat.level) {
-                    case SecurityThreatLevel.critical:
-                      threatColor = Colors.red;
-                      threatIcon = Icons.error;
-                      break;
-                    case SecurityThreatLevel.high:
-                      threatColor = Colors.orange;
-                      threatIcon = Icons.warning;
-                      break;
-                    case SecurityThreatLevel.medium:
-                      threatColor = Colors.amber;
-                      threatIcon = Icons.info;
-                      break;
-                    case SecurityThreatLevel.low:
-                      threatColor = Colors.blue;
-                      threatIcon = Icons.info_outline;
-                      break;
-                  }
-
-                  return ListTile(
-                    leading: Icon(threatIcon, color: threatColor),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: threats.length,
+              itemBuilder: (context, index) {
+                final threat = threats[index];
+                Color threatColor;
+                IconData threatIcon;
+                
+                // Special handling for compliance threats
+                bool isComplianceThreat = threat.name.contains('Compliance Violation');
+                
+                switch (threat.level) {
+                  case SecurityThreatLevel.critical:
+                    threatColor = Colors.red;
+                    threatIcon = isComplianceThreat ? Icons.gavel : Icons.error;
+                    break;
+                  case SecurityThreatLevel.high:
+                    threatColor = Colors.orange;
+                    threatIcon = isComplianceThreat ? Icons.gavel : Icons.warning;
+                    break;
+                  case SecurityThreatLevel.medium:
+                    threatColor = Colors.amber;
+                    threatIcon = isComplianceThreat ? Icons.gavel : Icons.info;
+                    break;
+                  case SecurityThreatLevel.low:
+                    threatColor = Colors.blue;
+                    threatIcon = isComplianceThreat ? Icons.gavel : Icons.info_outline;
+                    break;
+                }
+                
+                return Card(
+                  margin: EdgeInsets.symmetric(vertical: 4),
+                  color: isComplianceThreat ? Colors.red.withValues(alpha: 0.05) : null,
+                  child: ListTile(
+                    leading: Icon(
+                      threatIcon,
+                      color: threatColor,
+                    ),
                     title: Text(
                       threat.name,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text(threat.description),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(threat.description),
+                        if (isComplianceThreat) ...[
+                          SizedBox(height: 4),
+                          Text(
+                            'This violation affects RBI/NPCI compliance',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                     trailing: _getThreatLevelBadge(threat.level),
-                  );
-                },
-              ),
-          ],
-        ),
+                    isThreeLine: isComplianceThreat,
+                  ),
+                );
+              },
+            ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   // Helper widget to display threat level badge
   Widget _getThreatLevelBadge(SecurityThreatLevel level) {
@@ -567,19 +651,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
-      // Get security service
       final securityService = ServiceProvider.of(context).securityService;
 
-      // Refresh security status
       final updatedStatus = await securityService.refreshSecurityStatus();
+      
 
-      // Update state
       setState(() {
         _securityStatus = updatedStatus;
       });
     } catch (e) {
-      // Handle errors
-      if (!mounted) return;
+
+      if(!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error refreshing security data: $e')),
       );
@@ -594,34 +677,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _refreshActions() async {
     try {
-      // Get action service
       final actionsService = ServiceProvider.of(context).securityActionsService;
 
-      // Refresh actions
       final actions = actionsService.getRecentActions();
-
-      // Update state
+      
       if (mounted) {
         setState(() {
           _recentActions = actions;
         });
       }
     } catch (e) {
-      // Handle errors
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error refreshing actions: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error refreshing actions: $e')),
+      );
+
     }
   }
 
   Future<void> _runSecurityScan() async {
-    // Show progress indicator
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Running security scan...')));
-
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Running security scan...')),
+    );
+    
     try {
-      // Get security service
       final securityService = ServiceProvider.of(context).securityService;
       final actionsService = ServiceProvider.of(context).securityActionsService;
 
@@ -665,13 +743,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  void _checkCompliance() {
-    // Since compliance checks are to be implemented later,
-    // we'll keep this as a placeholder
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Compliance check initiated...')));
+ void _checkCompliance() async {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Running compliance check...')),
+  );
+  
+  try {
+    final complianceService = ServiceProvider.of(context).complianceService;
+    final actionsService = ServiceProvider.of(context).securityActionsService;
+    
+    // Run compliance check
+    final result = await complianceService.checkCompliance();
+    
+    // Record the action
+    actionsService.recordAction(ActionItem(
+      title: 'Compliance Check',
+      description: result.isFullyCompliant 
+          ? 'All compliance checks passed' 
+          : 'Found ${result.violations.length} compliance violations',
+      type: ActionType.complianceCheck,
+      status: result.isFullyCompliant ? ActionStatus.success : ActionStatus.warning,
+      timestamp: DateTime.now(),
+      details: 'RBI: ${result.isRbiCompliant ? "✓" : "✗"}, NPCI: ${result.isNpciCompliant ? "✓" : "✗"}',
+    ));
+    
+    setState(() {
+      _complianceStatus = result;
+    });
 
-    // This is where we would integrate with RBI/NPCI compliance checks later
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.isFullyCompliant
+                ? 'Compliance check passed: All systems compliant'
+                : 'Compliance issues found: ${result.violations.length} violations',
+          ),
+          backgroundColor: result.isFullyCompliant ? Colors.green : Colors.orange,
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during compliance check: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

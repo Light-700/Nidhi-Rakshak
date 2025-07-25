@@ -12,11 +12,11 @@ class SecurityStatusIndicator extends StatelessWidget {
 
   const SecurityStatusIndicator({
     super.key,
-    this.isDeviceSecure = true,
-    this.isRbiCompliant = true,
-    this.isNpciCompliant = true,
-    this.isJailbroken = false,
-    this.isRooted = false,
+    this.isDeviceSecure = false,
+    this.isRbiCompliant = false,
+    this.isNpciCompliant = false,
+    this.isJailbroken = true,
+    this.isRooted = true,
     required this.lastChecked,
   });
 
@@ -147,11 +147,15 @@ class SecurityStatusIndicator extends StatelessWidget {
 }
 
 enum ActionType {
-  securityScan,
-  complianceCheck,
-  threatDetection,
-  policyEnforcement,
-  backgroundCheck,
+securityScan,
+complianceCheck,
+threatDetection,
+policyEnforcement,
+backgroundCheck,
+rbiViolation,
+npciViolation,
+transactionBlocked,
+complianceAlert,
 }
 
 enum ActionStatus { success, failed, blocked, warning }
@@ -175,7 +179,7 @@ class ActionItem {
 }
 
 class ActionsListWidget extends StatefulWidget {
-  // This will be connected to your background service data later
+
   final List<ActionItem> actions;
   final VoidCallback? onRefresh;
   const ActionsListWidget({super.key, required this.actions, this.onRefresh});
@@ -339,6 +343,18 @@ class _ActionsListWidgetState extends State<ActionsListWidget> {
         break;
       case ActionType.backgroundCheck:
         iconData = Icons.schedule;
+        break;
+      case ActionType.rbiViolation:
+        iconData=Icons.assignment;
+        break;
+      case ActionType.npciViolation:
+        iconData=Icons.assignment;
+        break;
+      case ActionType.transactionBlocked:
+        iconData=Icons.cancel_presentation;
+        break;
+      case ActionType.complianceAlert:
+        iconData=Icons.error_outline;
         break;
     }
 

@@ -30,6 +30,9 @@ class SecurityService {
       StreamController<SecurityStatus>.broadcast();
   Stream<SecurityStatus> get securityStream => _securityStreamController.stream;
 
+  // Store compliance-related threats separately
+  final List<SecurityThreat> _complianceThreats = [];
+
   // Initialize the service and Periodic Checks
   Future<void> initialize() async {
     // Perform initial security check
@@ -60,8 +63,14 @@ class SecurityService {
     // Check for suspicious apps and other threats using our ThreatDetector
     final detectedThreats = await ThreatDetector.detectThreats();
 
+    // Combine device threats with compliance threats
+    final List<SecurityThreat> allThreats = [
+      ...detectedThreats,
+      ..._complianceThreats,
+    ];
+
     // Device is secure if not jailbroken/rooted and no critical threats
-    final hasCriticalThreats = detectedThreats.any(
+    final hasCriticalThreats = allThreats.any(
       (threat) => threat.level == SecurityThreatLevel.critical,
     );
 
@@ -73,7 +82,7 @@ class SecurityService {
       isJailbroken: isJailbroken,
       isRooted: isRooted,
       lastChecked: DateTime.now(),
-      detectedThreats: detectedThreats,
+      detectedThreats: allThreats,
     );
 
     // Save last checked time
@@ -138,7 +147,11 @@ class SecurityService {
   ) {
     if (newThreats.isEmpty) return currentStatus;
 
-    final updatedThreats = [...currentStatus.detectedThreats, ...newThreats];
+    // Explicitly type the combined list
+    final List<SecurityThreat> updatedThreats = [
+      ...currentStatus.detectedThreats,
+      ...newThreats,
+    ];
 
     // Create updated status
     final hasCriticalThreats = updatedThreats.any(
@@ -160,11 +173,85 @@ class SecurityService {
 
     // Broadcast the updated status
     _securityStreamController.add(_lastStatus!);
-
     return _lastStatus!;
-  } // Add additional checks or application-specific security logic here
+  }
 
-  // when needed. The core security detection logic is now in the modular detector classes.
+  // Add compliance threat - FIXED VERSION
+  Future<SecurityStatus> addComplianceThreat(SecurityThreat threat) async {
+    _complianceThreats.add(threat);
+    
+    // Explicitly type the combined list with proper null handling
+    final List<SecurityThreat> currentThreats = [
+      ...(_lastStatus?.detectedThreats ?? <SecurityThreat>[]), // Explicitly typed empty list
+      ..._complianceThreats,
+    ];
+    
+    _lastStatus = SecurityStatus(
+      isDeviceSecure: !currentThreats.any((t) => t.level == SecurityThreatLevel.critical),
+      isJailbroken: _lastStatus?.isJailbroken ?? false,
+      isRooted: _lastStatus?.isRooted ?? false,
+      lastChecked: DateTime.now(),
+      detectedThreats: currentThreats, // Now correctly typed
+    );
+
+    // Broadcast the update
+    _securityStreamController.add(_lastStatus!);
+    
+    return _lastStatus!;
+  }
+
+  // Clear compliance threats - FIXED VERSION
+  void clearComplianceThreats() {
+    _complianceThreats.clear();
+    
+    // Update security status without compliance threats
+    final List<SecurityThreat> deviceThreats = _lastStatus?.detectedThreats
+        ?.where((t) => !t.name.contains('Compliance Violation'))
+        .toList() ?? <SecurityThreat>[]; // Explicitly typed empty list
+    
+    _lastStatus = SecurityStatus(
+      isDeviceSecure: !deviceThreats.any((t) => t.level == SecurityThreatLevel.critical),
+      isJailbroken: _lastStatus?.isJailbroken ?? false,
+      isRooted: _lastStatus?.isRooted ?? false,
+      lastChecked: DateTime.now(),
+      detectedThreats: deviceThreats,
+    );
+
+    _securityStreamController.add(_lastStatus!);
+  }
+
+  // Get only compliance-related threats
+  List<SecurityThreat> getComplianceThreats() {
+    return List.unmodifiable(_complianceThreats);
+  }
+
+  // Get device threats (excluding compliance threats)
+  List<SecurityThreat> getDeviceThreats() {
+    final allThreats = _lastStatus?.detectedThreats ?? <SecurityThreat>[];
+    return allThreats
+        .where((threat) => !threat.name.contains('Compliance Violation'))
+        .toList();
+  }
+
+  // Check if device has critical threats
+  bool hasCriticalThreats() {
+    final allThreats = _lastStatus?.detectedThreats ?? <SecurityThreat>[];
+    return allThreats.any((threat) => threat.level == SecurityThreatLevel.critical);
+  }
+
+  // Get threats by severity level
+  List<SecurityThreat> getThreatsBySeverity(SecurityThreatLevel level) {
+    final allThreats = _lastStatus?.detectedThreats ?? <SecurityThreat>[];
+    return allThreats.where((threat) => threat.level == level).toList();
+  }
+
+  // Force refresh and broadcast current status
+  void broadcastCurrentStatus() {
+    if (_lastStatus != null) {
+      _securityStreamController.add(_lastStatus!);
+    }
+  }
+
   // Dispose resources - Resource Management
   void dispose() {
     _securityStreamController.close();
