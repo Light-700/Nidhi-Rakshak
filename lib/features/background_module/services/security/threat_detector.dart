@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 // import 'package:package_info_plus/package_info_plus.dart';
 
 import 'security_models.dart';
+import 'permission_analyzer.dart';
 
 /// Class for detecting various security threats on the device
 class ThreatDetector {
@@ -177,21 +178,42 @@ class ThreatDetector {
   static Future<List<SecurityThreat>> _checkHarmfulApps() async {
     final threats = <SecurityThreat>[];
     
-    // In a real implementation, this would check against a database of known harmful apps
-    // Here we'll use the platform channel as a placeholder
     try {
-      final result = await _platform.invokeMethod('checkHarmfulApps');
-      if (result != null && result is List) {
-        for (final app in result) {
-          threats.add(SecurityThreat(
-            name: 'Harmful App Detected',
-            description: 'Potentially harmful app detected: $app',
-            level: SecurityThreatLevel.high,
-          ));
+      // Use our permission analyzer to detect apps with suspicious permissions
+      final permissionThreats = await PermissionAnalyzer.analyzeDangerousAppPermissions();
+      threats.addAll(permissionThreats);
+      
+      // Also check through native code for any harmful apps
+      try {
+        final result = await _platform.invokeMethod('checkHarmfulApps');
+        if (result != null && result is List) {
+          for (final app in result) {
+            // Check if we already have this app in our threats list
+            bool alreadyDetected = false;
+            for (final threat in permissionThreats) {
+              if (threat.metadata != null && 
+                  threat.metadata!.containsKey('appName') && 
+                  app.toString().contains(threat.metadata!['appName'].toString())) {
+                alreadyDetected = true;
+                break;
+              }
+            }
+            
+            if (!alreadyDetected) {
+              threats.add(SecurityThreat(
+                name: 'Harmful App Detected',
+                description: 'Potentially harmful app detected: $app',
+                level: SecurityThreatLevel.high,
+              ));
+            }
+          }
         }
+      } catch (e) {
+        // Native method might not be implemented yet
+        debugPrint('Error calling native checkHarmfulApps: $e');
       }
     } catch (e) {
-      // Method not implemented yet
+      debugPrint('Error checking for harmful apps: $e');
     }
     
     return threats;

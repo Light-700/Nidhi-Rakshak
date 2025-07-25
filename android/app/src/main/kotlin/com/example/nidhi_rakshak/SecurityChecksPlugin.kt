@@ -42,6 +42,27 @@ class SecurityChecksPlugin: MethodCallHandler {
         
         result.success(getSettingsInt(settingsType, settingsKey, defaultValue))
       }
+      "getAppPermissions" -> {
+        val packageName = call.argument<String>("packageName")
+        if (packageName == null) {
+          result.error("INVALID_ARGUMENTS", "packageName must be provided", null)
+          return
+        }
+        
+        try {
+          result.success(getAppPermissions(packageName))
+        } catch (e: Exception) {
+          result.error("PERMISSION_ERROR", "Failed to get app permissions: ${e.message}", null)
+        }
+      }
+      "checkHarmfulApps" -> {
+        // Implement the harmful apps check using permission analysis
+        try {
+          result.success(detectHarmfulApps())
+        } catch (e: Exception) {
+          result.error("HARMFUL_APPS_ERROR", "Failed to check for harmful apps: ${e.message}", null)
+        }
+      }
       // Add more methods as needed
       else -> {
         result.notImplemented()
@@ -75,5 +96,110 @@ class SecurityChecksPlugin: MethodCallHandler {
   }
   fun onDetachedFromEngine() {
     channel.setMethodCallHandler(null)
+  }
+  
+  /**
+   * Get all permissions requested by the app in its manifest
+   */
+  private fun getAppPermissions(packageName: String): List<String> {
+    val packageManager = context.packageManager
+    try {
+      val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        packageManager.getPackageInfo(packageName, android.content.pm.PackageManager.PackageInfoFlags.of(android.content.pm.PackageManager.GET_PERMISSIONS.toLong()))
+      } else {
+        @Suppress("DEPRECATION")
+        packageManager.getPackageInfo(packageName, android.content.pm.PackageManager.GET_PERMISSIONS)
+      }
+      
+      return packageInfo.requestedPermissions?.toList() ?: listOf()
+    } catch (e: Exception) {
+      return listOf()
+    }
+  }
+  
+  /**
+   * Detect potentially harmful apps based on dangerous permission combinations
+   */
+  private fun detectHarmfulApps(): List<String> {
+    val harmfulApps = mutableListOf<String>()
+    val packageManager = context.packageManager
+    
+    // List of dangerous permission combinations to check
+    val dangerousPermissionCombinations = mapOf(
+      "SMS_AND_CALLS" to listOf(
+        "android.permission.READ_SMS",
+        "android.permission.READ_CALL_LOG"
+      ),
+      "LOCATION_AND_RECORDING" to listOf(
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ),
+      "SMS_INTERCEPT" to listOf(
+        "android.permission.RECEIVE_SMS",
+        "android.permission.READ_SMS"
+      )
+    )
+    
+    try {
+      // Get all installed apps
+      val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        packageManager.getInstalledPackages(android.content.pm.PackageManager.PackageInfoFlags.of(android.content.pm.PackageManager.GET_PERMISSIONS.toLong()))
+      } else {
+        @Suppress("DEPRECATION")
+        packageManager.getInstalledPackages(android.content.pm.PackageManager.GET_PERMISSIONS)
+      }
+      
+      // Filter out system apps
+      val nonSystemApps = installedPackages.filter { pkg ->
+        val appInfo = pkg.applicationInfo ?: return@filter false
+        (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0
+      }
+      
+      // Check each app for dangerous permission combinations
+      for (pkg in nonSystemApps) {
+        val packageName = pkg.packageName
+        // Skip our own app
+        if (packageName == context.packageName) continue
+        
+        val permissions = pkg.requestedPermissions?.toList() ?: continue
+        val appInfo = pkg.applicationInfo ?: continue
+        
+        // Check for dangerous combinations
+        for ((_, comboPermissions) in dangerousPermissionCombinations) {
+          if (permissions.containsAll(comboPermissions)) {
+            val appLabel = packageManager.getApplicationLabel(appInfo).toString()
+            harmfulApps.add("$appLabel ($packageName)")
+            break
+          }
+        }
+        
+        // Also check for apps with too many dangerous permissions
+        val dangerousPermissions = listOf(
+          "android.permission.READ_SMS",
+          "android.permission.SEND_SMS",
+          "android.permission.RECEIVE_SMS",
+          "android.permission.READ_CALL_LOG",
+          "android.permission.PROCESS_OUTGOING_CALLS",
+          "android.permission.RECORD_AUDIO",
+          "android.permission.CAMERA",
+          "android.permission.ACCESS_FINE_LOCATION",
+          "android.permission.ACCESS_BACKGROUND_LOCATION"
+        )
+        
+        val dangerousCount = permissions.count { it in dangerousPermissions }
+        if (dangerousCount >= 3) {
+          // Use safe call (?.) for handling nullable ApplicationInfo
+          val appLabel = packageManager.getApplicationLabel(appInfo).toString()
+          if (!harmfulApps.contains("$appLabel ($packageName)")) {
+            harmfulApps.add("$appLabel ($packageName)")
+          }
+        }
+      }
+      
+    } catch (e: Exception) {
+      e.printStackTrace()
+    }
+    
+    return harmfulApps
   }
 }

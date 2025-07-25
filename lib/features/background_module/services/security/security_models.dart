@@ -45,11 +45,15 @@ class SecurityThreat {
   
   /// Severity level of the threat
   final SecurityThreatLevel level;
+  
+  /// Additional metadata about the threat
+  final Map<String, dynamic>? metadata;
 
   SecurityThreat({
     required this.name,
     required this.description,
     required this.level,
+    this.metadata,
   });
 }
 

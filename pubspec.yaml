@@ -47,6 +47,8 @@ dependencies:
   crypto: ^3.0.3                     # Cryptographic functions
   encrypt: ^5.0.1                    # Data encryption
   local_auth: ^2.1.6             # Biometric authentication
+  installed_apps: ^1.6.0
+
 
 dev_dependencies:
   flutter_test:

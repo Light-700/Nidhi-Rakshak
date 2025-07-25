@@ -16,6 +16,8 @@ import 'settings/settings_view.dart';
 //screens
 //import 'screens/home_screen.dart';
 import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/dashboard_screen.dart';
+import 'package:nidhi_rakshak/features/dashboard_module/presentation/pages/more_apps_screen.dart';
+import 'package:nidhi_rakshak/features/security_module/presentation/pages/security_scanner_screen.dart';
 
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {
@@ -66,13 +68,16 @@ class MyApp extends StatelessWidget {
           // Define a light and dark color theme. Then, read the user's
           // preferred ThemeMode (light, dark, or system default) from the
           // SettingsController to display the correct theme.
-          theme: ThemeData(
-            primaryColor: const Color.fromARGB(255, 2, 205, 73),
-            scaffoldBackgroundColor: const Color.fromARGB(255, 206, 89, 5),
+          theme:  ThemeData(
+          primaryColor: const Color.fromARGB(255, 32, 45, 191),
+          scaffoldBackgroundColor: Colors.transparent, // Allow gradients to show
             fontFamily: 'Roboto',
+            brightness: Brightness.light,
           ),
           darkTheme: ThemeData.dark().copyWith(
-            primaryColor: const Color.fromARGB(255, 4, 130, 38),
+          primaryColor: const Color.fromARGB(255, 100, 110, 213),
+          scaffoldBackgroundColor: Colors.transparent,
+            brightness: Brightness.dark,
           ),
           themeMode: settingsController.themeMode,
           home: DashboardScreen(),
@@ -86,6 +91,10 @@ class MyApp extends StatelessWidget {
                 switch (routeSettings.name) {
                   case SettingsView.routeName:
                     return SettingsView(controller: settingsController);
+                  case MoreAppsScreen.routeName:
+                    return const MoreAppsScreen();
+                  case SecurityScannerScreen.routeName:
+                    return const SecurityScannerScreen();
                   case SampleItemDetailsView.routeName:
                     return const SampleItemDetailsView();
                   case SampleItemListView.routeName:
