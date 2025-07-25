@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 
 class SecurityStatusIndicator extends StatelessWidget {
-  // These will be connected to your security module later
   final bool isDeviceSecure;
   final bool isRbiCompliant;
   final bool isNpciCompliant;
@@ -437,7 +436,6 @@ class _ActionsListWidgetState extends State<ActionsListWidget> {
   }
 
   void _showActionDetails(ActionItem action) {
-    // This will show detailed information about the action
-    // Connect this to your detailed view later
+    // unimplemented
   }
 }
