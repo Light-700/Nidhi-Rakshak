@@ -102,8 +102,6 @@ const certifiedApps = ['com.ucobank.securepay', 'com.ucobank.main'];
 return certifiedApps.contains(appId);
 }
 
-// Add these enhanced methods to your NPCIValidationService class
-
 // Transaction frequency tracking
 final Map<String, List<DateTime>> _transactionFrequency = {};
 
