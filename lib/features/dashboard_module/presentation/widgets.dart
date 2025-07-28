@@ -1,5 +1,6 @@
 // lib/features/dashboard_module/presentation/widgets/security_status_indicator.dart
 import 'package:flutter/material.dart';
+import 'package:nidhi_rakshak/features/background_module/services/security/security_models.dart';
 
 class SecurityStatusIndicator extends StatelessWidget {
   // These will be connected to your security module later
@@ -8,6 +9,9 @@ class SecurityStatusIndicator extends StatelessWidget {
   final bool isNpciCompliant;
   final bool isJailbroken;
   final bool isRooted;
+  final bool isVpnDetected;
+  final VpnConfidenceLevel vpnConfidenceLevel;
+  final List<String> installedVpnApps;
   final DateTime lastChecked;
 
   const SecurityStatusIndicator({
@@ -17,6 +21,9 @@ class SecurityStatusIndicator extends StatelessWidget {
     this.isNpciCompliant = true,
     this.isJailbroken = false,
     this.isRooted = false,
+    this.isVpnDetected = false,
+    this.vpnConfidenceLevel = VpnConfidenceLevel.none,
+    this.installedVpnApps = const [],
     required this.lastChecked,
   });
 
@@ -69,6 +76,14 @@ class SecurityStatusIndicator extends StatelessWidget {
               'Device Integrity',
               !isJailbroken && !isRooted,
               isJailbroken || isRooted ? 'Device compromised' : 'Secure',
+            ),
+
+            _buildStatusItem(
+              'VPN Detection',
+              !isVpnDetected,
+              isVpnDetected 
+                  ? 'VPN detected (${_getVpnConfidenceText()})' 
+                  : 'No VPN detected',
             ),
 
             _buildStatusItem(
@@ -130,6 +145,19 @@ class SecurityStatusIndicator extends StatelessWidget {
     );
   }
 
+  String _getVpnConfidenceText() {
+    switch (vpnConfidenceLevel) {
+      case VpnConfidenceLevel.none:
+        return 'None';
+      case VpnConfidenceLevel.low:
+        return 'Low confidence';
+      case VpnConfidenceLevel.medium:
+        return 'Medium confidence';
+      case VpnConfidenceLevel.high:
+        return 'High confidence';
+    }
+  }
+
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
@@ -152,6 +180,11 @@ enum ActionType {
   threatDetection,
   policyEnforcement,
   backgroundCheck,
+  vpnDetection,
+  rbiViolation,
+  npciViolation,
+  transactionBlocked,
+  complianceAlert,
 }
 
 enum ActionStatus { success, failed, blocked, warning }
@@ -339,6 +372,21 @@ class _ActionsListWidgetState extends State<ActionsListWidget> {
         break;
       case ActionType.backgroundCheck:
         iconData = Icons.schedule;
+        break;
+      case ActionType.vpnDetection:
+        iconData = Icons.vpn_key;
+        break;
+      case ActionType.rbiViolation:
+        iconData = Icons.assignment;
+        break;
+      case ActionType.npciViolation:
+        iconData = Icons.assignment;
+        break;
+      case ActionType.transactionBlocked:
+        iconData = Icons.cancel_presentation;
+        break;
+      case ActionType.complianceAlert:
+        iconData = Icons.error_outline;
         break;
     }
 

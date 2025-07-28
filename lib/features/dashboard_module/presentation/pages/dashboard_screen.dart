@@ -136,6 +136,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   isNpciCompliant: false, // To be implemented later
                   isJailbroken: securityStatus.isJailbroken,
                   isRooted: securityStatus.isRooted,
+                  // VPN detection information
+                  isVpnDetected: securityStatus.isVpnDetected,
+                  vpnConfidenceLevel: securityStatus.vpnConfidenceLevel,
+                  installedVpnApps: securityStatus.installedVpnApps,
                 ),
 
                 SizedBox(height: 16),

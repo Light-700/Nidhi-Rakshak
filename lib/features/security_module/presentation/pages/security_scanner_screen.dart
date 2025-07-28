@@ -146,6 +146,7 @@ class _SecurityScannerScreenState extends State<SecurityScannerScreen> {
             const Divider(height: 24),
             _buildSecurityDetail('Root Detection', status.isRooted),
             _buildSecurityDetail('Jailbreak Detection', status.isJailbroken),
+            _buildSecurityDetail('VPN Detection', status.isVpnDetected),
             _buildSecurityDetail(
               'Suspicious Apps',
               status.detectedThreats.any(

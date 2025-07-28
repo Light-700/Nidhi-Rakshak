@@ -87,6 +87,28 @@ class SecurityActionsService {
     recordAction(action);
   }
 
+  // Record VPN detection
+  void recordVpnDetection({
+    required bool vpnDetected,
+    required String confidenceLevel,
+    List<String> detectedVpnApps = const [],
+    String? details,
+  }) {
+    final action = ActionItem(
+      title: vpnDetected ? 'VPN Connection Detected' : 'VPN Scan Completed',
+      description: vpnDetected 
+          ? 'VPN connection detected with $confidenceLevel confidence'
+          : 'No VPN connection detected',
+      type: ActionType.vpnDetection,
+      status: vpnDetected ? ActionStatus.warning : ActionStatus.success,
+      timestamp: DateTime.now(),
+      details: details ?? (detectedVpnApps.isNotEmpty 
+          ? 'VPN Apps: ${detectedVpnApps.join(', ')}'
+          : null),
+    );
+    recordAction(action);
+  }
+
   // Dispose resources
   // Properly closes the stream controller when the service is no longer needed
   void dispose() {

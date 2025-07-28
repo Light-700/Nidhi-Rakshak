@@ -9,6 +9,15 @@ class SecurityStatus {
   /// Whether the device is rooted (Android)
   final bool isRooted;
   
+  /// Whether VPN is detected/active
+  final bool isVpnDetected;
+  
+  /// VPN detection confidence level
+  final VpnConfidenceLevel vpnConfidenceLevel;
+  
+  /// List of installed VPN applications
+  final List<String> installedVpnApps;
+  
   /// When the security scan was performed
   final DateTime lastChecked;
   
@@ -19,6 +28,9 @@ class SecurityStatus {
     required this.isDeviceSecure,
     required this.isJailbroken,
     required this.isRooted,
+    required this.isVpnDetected,
+    required this.vpnConfidenceLevel,
+    required this.installedVpnApps,
     required this.lastChecked,
     required this.detectedThreats,
   });
@@ -29,6 +41,9 @@ class SecurityStatus {
       isDeviceSecure: true,
       isJailbroken: false,
       isRooted: false,
+      isVpnDetected: false,
+      vpnConfidenceLevel: VpnConfidenceLevel.none,
+      installedVpnApps: [],
       lastChecked: DateTime.now(),
       detectedThreats: [],
     );
@@ -59,3 +74,11 @@ class SecurityThreat {
 
 /// Enum categorizing threats by severity level
 enum SecurityThreatLevel { low, medium, high, critical }
+
+/// VPN detection confidence levels
+enum VpnConfidenceLevel {
+  none,    // No VPN detected
+  low,     // Single detection method triggered
+  medium,  // Multiple detection methods triggered
+  high,    // High-confidence detection methods or service-level detection
+}

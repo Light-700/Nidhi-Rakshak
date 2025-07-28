@@ -9,6 +9,7 @@ import 'security/security_models.dart';
 import 'security/jailbreak_detector.dart';
 import 'security/root_detector.dart';
 import 'security/threat_detector.dart';
+import 'security/vpn_detector.dart';
 import 'native_security_bridge.dart';
 
 class SecurityService {
@@ -60,6 +61,9 @@ class SecurityService {
     // Check for suspicious apps and other threats using our ThreatDetector
     final detectedThreats = await ThreatDetector.detectThreats();
 
+    // Check for VPN detection
+    final vpnDetectionResult = await VpnDetector.detectVpn();
+
     // Device is secure if not jailbroken/rooted and no critical threats
     final hasCriticalThreats = detectedThreats.any(
       (threat) => threat.level == SecurityThreatLevel.critical,
@@ -72,6 +76,9 @@ class SecurityService {
       isDeviceSecure: isDeviceSecure,
       isJailbroken: isJailbroken,
       isRooted: isRooted,
+      isVpnDetected: vpnDetectionResult.isVpnDetected,
+      vpnConfidenceLevel: await VpnDetector.getVpnConfidenceLevel(),
+      installedVpnApps: vpnDetectionResult.installedVpnApps,
       lastChecked: DateTime.now(),
       detectedThreats: detectedThreats,
     );
@@ -154,6 +161,9 @@ class SecurityService {
       isDeviceSecure: isDeviceSecure,
       isJailbroken: currentStatus.isJailbroken,
       isRooted: currentStatus.isRooted,
+      isVpnDetected: currentStatus.isVpnDetected,
+      vpnConfidenceLevel: currentStatus.vpnConfidenceLevel,
+      installedVpnApps: currentStatus.installedVpnApps,
       lastChecked: DateTime.now(),
       detectedThreats: updatedThreats,
     );

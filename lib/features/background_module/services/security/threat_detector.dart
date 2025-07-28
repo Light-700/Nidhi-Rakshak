@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import 'security_models.dart';
 import 'permission_analyzer.dart';
+import 'vpn_detector.dart';
 
 /// Class for detecting various security threats on the device
 class ThreatDetector {
@@ -72,6 +73,14 @@ class ThreatDetector {
           ),
         );
       }
+      
+      // VPN Detection
+      final vpnDetectionResult = await VpnDetector.detectVpn();
+      if (vpnDetectionResult.isVpnDetected) {
+        debugPrint('VPN detected via VpnDetector');
+        threats.addAll(vpnDetectionResult.vpnThreats);
+      }
+      
         // In a real implementation, you'd connect to a threat intelligence API
       // For now, we'll simulate finding threats occasionally for demo purposes
       if (DateTime.now().second % 5 == 0) {
