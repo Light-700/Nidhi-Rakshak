@@ -1,10 +1,8 @@
-from fastapi import FastAPI, HTTPException, Security, Depends
-from fastapi.security.api_key import APIKeyHeader
+from fastapi import FastAPI, HTTPException
 from typing import Dict
 import pandas as pd
 import numpy as np
 import joblib
-import secrets
 from pydantic import BaseModel
 
 app = FastAPI(title="Fraud Detection API")
@@ -13,19 +11,19 @@ app = FastAPI(title="Fraud Detection API")
 model = joblib.load('fraud_model.joblib')
 scaler = joblib.load('scaler.joblib')
 
-# API Key security
-API_KEY = secrets.token_urlsafe(32)  # Generate a random API key
-api_key_header = APIKeyHeader(name="X-API-Key")
+# API Key security - DISABLED FOR DEVELOPMENT
+# API_KEY = secrets.token_urlsafe(32)  # Generate a random API key
+# api_key_header = APIKeyHeader(name="X-API-Key")
 
-print(f"Generated API Key: {API_KEY}")  # This will print when you start the server
+# print(f"Generated API Key: {API_KEY}")  # This will print when you start the server
 
-async def get_api_key(api_key_header: str = Security(api_key_header)):
-    if api_key_header == API_KEY:
-        return api_key_header
-    raise HTTPException(
-        status_code=403,
-        detail="Invalid API Key"
-    )
+# async def get_api_key(api_key_header: str = Security(api_key_header)):
+#     if api_key_header == API_KEY:
+#         return api_key_header
+#     raise HTTPException(
+#         status_code=403,
+#         detail="Invalid API Key"
+#     )
 
 class TransactionData(BaseModel):
     step: int
@@ -75,7 +73,7 @@ def create_advanced_features(transaction_data: Dict):
     return df
 
 @app.post("/predict")
-async def predict(data: TransactionData, api_key: str = Depends(get_api_key)):
+async def predict(data: TransactionData):
     try:
         # Convert input data to dictionary
         transaction_dict = data.dict()
