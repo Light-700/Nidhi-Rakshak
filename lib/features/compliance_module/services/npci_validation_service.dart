@@ -70,7 +70,6 @@ details: {
 
 // Rule 4: Validate transaction type appropriateness
 if (transaction.amount >= RTGS_MIN_AMOUNT) {
-// For large amounts, suggest RTGS instead of UPI
 violations.add(ComplianceViolation(
 id: 'NPCI_RTGS_RECOMMENDED_${DateTime.now().millisecondsSinceEpoch}',
 type: 'NPCI Transaction Type Recommendation',
@@ -102,8 +101,6 @@ Future<bool> isAppNPCICertified(String appId) async {
 const certifiedApps = ['com.ucobank.securepay', 'com.ucobank.main'];
 return certifiedApps.contains(appId);
 }
-
-// Add these enhanced methods to your NPCIValidationService class
 
 // Transaction frequency tracking
 final Map<String, List<DateTime>> _transactionFrequency = {};
