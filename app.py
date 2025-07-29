@@ -1,11 +1,22 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict
 import pandas as pd
 import numpy as np
 import joblib
+import os
 from pydantic import BaseModel
 
 app = FastAPI(title="Fraud Detection API")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Load the model and scaler
 model = joblib.load('fraud_model.joblib')
@@ -125,4 +136,14 @@ async def predict(data: TransactionData):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "service": "Nidhi-Rakshak Fraud Detection API",
+        "version": "1.0.0"
+    }
+
+# For local development
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("app:app", host="0.0.0.0", port=port)
