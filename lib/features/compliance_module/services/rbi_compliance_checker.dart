@@ -37,19 +37,6 @@ Future<ValidationResult> validateTransaction(TransactionData transaction) async 
     ));
   }
 
-  // Rule 2: Check if transaction amount exceeds daily limit
-  if (transaction.amount > dailyTransactionLimit) {
-    violations.add(ComplianceViolation(
-      id: 'RBI_DAILY_LIMIT_${DateTime.now().millisecondsSinceEpoch}',
-      type: 'RBI Daily Limit Violation',
-      description: 'Single transaction amount ₹${transaction.amount.toStringAsFixed(2)} exceeds daily limit',
-      severity: ViolationSeverity.critical,
-      timestamp: DateTime.now(),
-      appId: transaction.appId,
-      details: {'amount': transaction.amount, 'limit': dailyTransactionLimit},
-    ));
-  }
-
   //  Rule 3: Validate MFA method if provided
   if (transaction.mfaCompleted && transaction.mfaMethod != null) {
     if (!_isValidMFAMethod(transaction.mfaMethod!)) {

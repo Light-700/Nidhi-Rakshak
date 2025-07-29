@@ -57,7 +57,7 @@ violations: allViolations,
 lastChecked: DateTime.now(),
 );
 _lastStatus = status;
-_statusController.add(status);// Update violations list (keep last 50)
+_statusController.add(status);
 _violations.addAll(allViolations);
 if (_violations.length > 50) {
 _violations.removeRange(0, _violations.length - 50);
@@ -80,7 +80,7 @@ final allViolations = [...rbiValidation.violations, ...npciValidation.violations
 if (allViolations.isNotEmpty) {
 _violations.addAll(allViolations);
 notifyListeners();
-// Update compliance status
+
 await checkCompliance();
 return ValidationResult.failure(transaction, allViolations);
 } 

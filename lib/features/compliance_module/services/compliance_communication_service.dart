@@ -65,10 +65,8 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
     // Extract transaction data from native call
     final transactionData = Map<String, dynamic>.from(args);
     
-    // Call your REAL compliance validation logic
     final result = await _complianceService!.validateTransaction(transactionData);
     
-    // Convert violations to security threats if needed
     if (!result.isValid && result.violations.isNotEmpty) {
       await _convertViolationsToSecurityThreats(result.violations, transactionData);
     }
