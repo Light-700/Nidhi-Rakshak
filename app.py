@@ -72,6 +72,19 @@ def create_advanced_features(transaction_data: Dict):
     
     return df
 
+@app.get("/")
+async def root():
+    return {
+        "message": "Nidhi-Rakshak Fraud Detection API",
+        "version": "1.0.0",
+        "status": "active",
+        "endpoints": {
+            "health": "/health",
+            "predict": "/predict",
+            "docs": "/docs"
+        }
+    }
+
 @app.post("/predict")
 async def predict(data: TransactionData):
     try:
