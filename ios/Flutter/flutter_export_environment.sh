@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=D:\flutter_sdk\flutter_files\flutter"
-export "FLUTTER_APPLICATION_PATH=D:\PROJECT\project _file(UG)\2nd year\UCO Bank Hackathon\Nidhi-Rakshak"
+export "FLUTTER_ROOT=C:\flutter"
+export "FLUTTER_APPLICATION_PATH=E:\2.0\Tech\Coding\Hackathons\IIEST UCO Bank Hackathon 2025\Nidhi-Rakshak"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"

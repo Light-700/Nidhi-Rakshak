@@ -10,6 +10,8 @@ import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel.Result
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -29,6 +31,9 @@ class MainActivity: FlutterActivity() {
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
+        // 0. Create notification channels for Android 8.0+
+        createNotificationChannels()
+        
         // 1. Register the SecurityChecksPlugin for device-level security checks
         val securityPlugin = SecurityChecksPlugin()
         securityPlugin.onAttachedToEngine(flutterEngine.dartExecutor.binaryMessenger, applicationContext)
@@ -43,11 +48,40 @@ class MainActivity: FlutterActivity() {
         // 3. Set up the broadcast receiver to listen for events from Android services (like the AccessibilityService)
         setupSecurityReceiver()
     }
+    
+    /**
+     * Creates the notification channels required for the app.
+     * This is required for Android 8.0 (API level 26) and higher.
+     */
+    private fun createNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val complianceChannel = android.app.NotificationChannel(
+                "COMPLIANCE_CHANNEL",
+                "Compliance Monitoring",
+                android.app.NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Used for compliance monitoring services"
+                enableLights(false)
+                enableVibration(false)
+            }
+            
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            notificationManager.createNotificationChannel(complianceChannel)
+            Log.d("MainActivity", "Notification channel created: COMPLIANCE_CHANNEL")
+            
+            // For Android 13+, we need to request notification permissions
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 100)
+                }
+            }
+        }
+    }
 
     /**
      * Handles all method calls invoked from the Dart side of the application.
      */
-    private fun handleMethodCall(call: MethodChannel.MethodCall, result: MethodChannel.Result) {
+    private fun handleMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "initializeComplianceMonitoring" -> {
                 // This method is preserved to allow Dart to start the background service
@@ -74,7 +108,7 @@ class MainActivity: FlutterActivity() {
      * Starts the background ComplianceMonitoringService.
      * This is preserved from your original code.
      */
-    private fun initializeComplianceMonitoring(result: MethodChannel.Result) {
+    private fun initializeComplianceMonitoring(result: Result) {
         try {
             val intent = Intent(this, ComplianceMonitoringService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -103,7 +137,14 @@ class MainActivity: FlutterActivity() {
             addAction("com.ucobank.INITIALIZE_SECURITY")
             addAction("com.ucobank.APP_LAUNCH")
         }
-        registerReceiver(securityReceiver, filter)
+        
+        // For Android 14+ (API level 34+), we need to specify RECEIVER_NOT_EXPORTED
+        // since this receiver is for internal app communication only
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(securityReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(securityReceiver, filter)
+        }
     }
 
     override fun onDestroy() {
@@ -135,7 +176,7 @@ class MainActivity: FlutterActivity() {
      * The core validation logic that invokes the Dart method.
      * Can be called from a broadcast or directly from another method call.
      */
-    private fun handleRealTransactionValidation(transactionData: Map<String, Any?>, channelResult: MethodChannel.Result?) {
+    private fun handleRealTransactionValidation(transactionData: Map<String, Any?>, channelResult: Result?) {
         if (transactionData["error"] != null) {
             Log.e("Validation", "Cannot validate transaction due to parsing error: ${transactionData["error"]}")
             channelResult?.error("PARSING_ERROR", "Could not parse transaction data", transactionData["error"])
