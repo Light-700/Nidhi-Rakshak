@@ -1,3 +1,4 @@
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'compliance_service.dart';
@@ -51,7 +52,6 @@ class ComplianceCommunicationService {
   }
 }
 
-// ADD THIS METHOD: Handle validation requests from native Android bridge
 static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic> args) async {
   if (_complianceService == null) {
     return {
@@ -62,7 +62,6 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
   }
 
   try {
-    // Extract transaction data from native call
     final transactionData = Map<String, dynamic>.from(args);
     
     final result = await _complianceService!.validateTransaction(transactionData);
@@ -71,7 +70,6 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
       await _convertViolationsToSecurityThreats(result.violations, transactionData);
     }
     
-    // Return actual validation result
     return {
       'isValid': result.isValid,
       'message': result.message,
@@ -104,7 +102,6 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
     try {
       final result = await _complianceService!.validateTransaction(transactionData);
       
-      // If there are violations, convert them to security threats
       if (!result.isValid && result.violations.isNotEmpty) {
         await _convertViolationsToSecurityThreats(result.violations, transactionData);
       }
@@ -138,7 +135,6 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
     try {
       final status = await _complianceService!.checkCompliance();
       
-      // If not compliant, create security threats for violations
       if (!status.isFullyCompliant && status.violations.isNotEmpty) {
         await _convertViolationsToSecurityThreats(status.violations, null);
       }
@@ -165,17 +161,14 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
     if (_securityService == null || _actionsService == null) return;
 
     for (final violation in violations) {
-      // Create security threat based on violation
       final threat = SecurityThreat(
         name: 'Compliance Violation: ${violation.type}',
         description: violation.description,
         level: _mapViolationSeverityToThreatLevel(violation.severity),
       );
 
-      // Add threat to security service
       await _securityService!.addComplianceThreat(threat);
 
-      // Record action
       _actionsService!.recordAction(ActionItem(
         title: 'Compliance Violation Detected',
         description: violation.description,
@@ -216,7 +209,6 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
   static Future<void> _reportViolation(Map<String, dynamic> violationData) async {
     debugPrint('Violation reported from external app: $violationData');
     
-    // Record the violation report
     _actionsService?.recordAction(ActionItem(
       title: 'External Violation Report',
       description: violationData['description'] ?? 'Violation reported by external app',

@@ -1,3 +1,4 @@
+
 import '../Domain/compliance_status.dart';
 
 class TransactionData {
