@@ -5,21 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
-import androidx.annotation.NonNull
-import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.Result
-
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.os.Build
 import android.util.Log
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
@@ -143,47 +128,6 @@ class MainActivity: FlutterActivity() {
      */
     private fun setupSecurityReceiver() {
         if (securityReceiver != null) return
-        
-        securityReceiver = SecurityReceiver()
-        val filter = IntentFilter().apply {
-            addAction("com.ucobank.TRANSACTION_VALIDATION_REQUEST")
-            addAction("com.ucobank.PERIODIC_COMPLIANCE_CHECK")
-        }
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(securityReceiver, filter, Context.RECEIVER_EXPORTED)
-        } else {
-            registerReceiver(securityReceiver, filter)
-        }
-        
-        Log.d("SecurityReceiver", "Security receiver registered successfully")
-    }
-    
-    inner class SecurityReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            when (intent?.action) {
-                "com.ucobank.TRANSACTION_VALIDATION_REQUEST" -> {
-                    val transactionData = intent.extras?.let { bundle ->
-                        mapOf(
-                            "id" to bundle.getString("transactionId", ""),
-                            "amount" to bundle.getDouble("amount", 0.0),
-                            "fromAccount" to bundle.getString("fromAccount", ""),
-                            "toAccount" to bundle.getString("toAccount", ""),
-                            "appId" to bundle.getString("appId", ""),
-                            "timestamp" to System.currentTimeMillis().toString(),
-                            "mfaCompleted" to bundle.getBoolean("mfaCompleted", false),
-                            "transactionType" to bundle.getString("transactionType", "UPI")
-                        )
-                    } ?: emptyMap<String, Any>()
-                    
-                    handleRealTransactionValidation(transactionData, null)
-                }
-                "com.ucobank.PERIODIC_COMPLIANCE_CHECK" -> {
-                    complianceChannel.invokeMethod("checkCompliance", null)
-                }
-            }
-        }
-    }
 
         securityReceiver = SecurityReceiver()
         val filter = IntentFilter().apply {
