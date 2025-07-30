@@ -1,0 +1,9 @@
+modules = ["python-3.12", "swift-5.8", "nix"]
+run = "uvicorn app:app --host 0.0.0.0 --port 3000"
+
+[nix]
+channel = "stable-25_05"
+packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "gobject-introspection", "gtk3", "libxcrypt", "pkg-config", "qhull", "tcl", "tk"]
+
+[deployment]
+run = ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port 3000"]
