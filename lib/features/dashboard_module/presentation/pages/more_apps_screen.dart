@@ -18,7 +18,7 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
   List<AppInfo> _apps = [];
   String _searchQuery = '';
   bool _showSystemApps = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -33,11 +33,11 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
     try {
       // Get all installed apps
       final apps = await InstalledApps.getInstalledApps(
-        !_showSystemApps, 
+        !_showSystemApps,
         true,
         "",
       );
-      
+
       // Sort alphabetically by name
       apps.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
@@ -49,12 +49,12 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
       setState(() {
         _isLoading = false;
       });
-      
+
       // Show error message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load apps: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load apps: $e')));
       }
     }
   }
@@ -64,11 +64,16 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
     if (_searchQuery.isEmpty) {
       return _apps;
     }
-    
-    return _apps.where((app) => 
-      app.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-      app.packageName.toLowerCase().contains(_searchQuery.toLowerCase())
-    ).toList();
+
+    return _apps
+        .where(
+          (app) =>
+              app.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              app.packageName.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              ),
+        )
+        .toList();
   }
 
   // Show app details dialog
@@ -97,19 +102,16 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
                 builder: (context, snapshot) {
                   final isSystem = snapshot.data ?? false;
                   return _detailRow(
-                    'App Type', 
-                    isSystem ? 'System App' : 'User Installed App'
+                    'App Type',
+                    isSystem ? 'System App' : 'User Installed App',
                   );
-                }
+                },
               ),
               // App permissions section
               const SizedBox(height: 16),
               const Text(
                 'App Permissions',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
               const SizedBox(height: 8),
               FutureBuilder<List<String>>(
@@ -137,49 +139,51 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
+            child: const Text('Close'),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               InstalledApps.openSettings(app.packageName);
             },
-            child: Text('Open Settings'),
+            child: const Text('Open Settings'),
           ),
         ],
       ),
     );
-    
+
     // Show risk assessment bottom sheet for apps with dangerous permissions
     _showRiskAssessment(app);
   }
-  
+
   // Show risk assessment as a separate bottom sheet
   void _showRiskAssessment(AppInfo app) {
     // Wait a bit for the dialog to show up first
-    Future.delayed(Duration(milliseconds: 300), () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       PermissionAnalyzer.getAppPermissions(app.packageName).then((permissions) {
         if (!mounted) return;
-        
+
         final dangerousCount = permissions
             .where((p) => PermissionAnalyzer.dangerousPermissions.contains(p))
             .length;
-            
+
         // Check for dangerous combinations
-        final dangerousCombo = PermissionAnalyzer
-            .checkDangerousPermissionCombinations(permissions);
-            
+        final dangerousCombo =
+            PermissionAnalyzer.checkDangerousPermissionCombinations(
+              permissions,
+            );
+
         if (dangerousCombo.isNotEmpty || dangerousCount >= 3) {
           showModalBottomSheet(
             context: context,
             builder: (context) => Container(
               color: Colors.red.shade50,
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  const Row(
                     children: [
                       Icon(Icons.warning_amber, color: Colors.red),
                       SizedBox(width: 8),
@@ -193,19 +197,21 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   if (dangerousCombo.isNotEmpty)
-                    Text('This app uses a suspicious combination of permissions: $dangerousCombo'),
+                    Text(
+                      'This app uses a suspicious combination of permissions: $dangerousCombo',
+                    ),
                   if (dangerousCount >= 3)
-                    Text('This app uses $dangerousCount dangerous permissions which may pose a security risk.'),
-                  SizedBox(height: 12),
+                    Text(
+                      'This app uses $dangerousCount dangerous permissions which may pose a security risk.',
+                    ),
+                  const SizedBox(height: 12),
                   Center(
                     child: TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text('DISMISS'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
-                      ),
+                      child: const Text('DISMISS'),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
                     ),
                   ),
                 ],
@@ -216,7 +222,7 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
       });
     });
   }
-  
+
   // End of risk assessment
 
   Widget _detailRow(String label, String value) {
@@ -232,27 +238,23 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
-          SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-            ),
-          ),
-          Divider(),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(fontSize: 16)),
+          const Divider(),
         ],
       ),
     );
   }
-  
+
   Widget _buildPermissionsList(List<String> permissions) {
     // Sort permissions alphabetically
-    final sortedPermissions = [...permissions]
-      ..sort((a, b) => a.compareTo(b));
-      
+    final sortedPermissions = [...permissions]..sort((a, b) => a.compareTo(b));
+
     // Format permission names for better readability
-    final formattedPermissions = sortedPermissions.map(_formatPermission).toList();
-    
+    final formattedPermissions = sortedPermissions
+        .map(_formatPermission)
+        .toList();
+
     // Categorize permissions
     final Map<String, List<String>> categorizedPermissions = {
       'Dangerous': [],
@@ -260,97 +262,114 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
       'Special': [],
       'Others': [],
     };
-    
+
     // Categorize each permission
     for (int i = 0; i < sortedPermissions.length; i++) {
       final rawPermission = sortedPermissions[i];
       final formattedPermission = formattedPermissions[i];
-      
+
       if (PermissionAnalyzer.dangerousPermissions.contains(rawPermission)) {
         categorizedPermissions['Dangerous']!.add(formattedPermission);
-      } else if (rawPermission.contains('INTERNET') || 
-                rawPermission.contains('ACCESS_NETWORK_STATE')) {
+      } else if (rawPermission.contains('INTERNET') ||
+          rawPermission.contains('ACCESS_NETWORK_STATE')) {
         categorizedPermissions['Normal']!.add(formattedPermission);
-      } else if (rawPermission.contains('BIND_') || 
-                rawPermission.contains('MANAGE_')) {
+      } else if (rawPermission.contains('BIND_') ||
+          rawPermission.contains('MANAGE_')) {
         categorizedPermissions['Special']!.add(formattedPermission);
       } else {
         categorizedPermissions['Others']!.add(formattedPermission);
       }
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (categorizedPermissions['Dangerous']!.isNotEmpty) ...[
-          _permissionCategory('Dangerous Permissions', 
-            categorizedPermissions['Dangerous']!, Colors.red),
+          _permissionCategory(
+            'Dangerous Permissions',
+            categorizedPermissions['Dangerous']!,
+            Colors.red,
+          ),
         ],
         if (categorizedPermissions['Normal']!.isNotEmpty) ...[
-          _permissionCategory('Normal Permissions', 
-            categorizedPermissions['Normal']!, Colors.green),
+          _permissionCategory(
+            'Normal Permissions',
+            categorizedPermissions['Normal']!,
+            Colors.green,
+          ),
         ],
         if (categorizedPermissions['Special']!.isNotEmpty) ...[
-          _permissionCategory('Special Permissions', 
-            categorizedPermissions['Special']!, Colors.orange),
+          _permissionCategory(
+            'Special Permissions',
+            categorizedPermissions['Special']!,
+            Colors.orange,
+          ),
         ],
         if (categorizedPermissions['Others']!.isNotEmpty) ...[
-          _permissionCategory('Other Permissions', 
-            categorizedPermissions['Others']!, Colors.blue),
+          _permissionCategory(
+            'Other Permissions',
+            categorizedPermissions['Others']!,
+            Colors.blue,
+          ),
         ],
       ],
     );
   }
-  
-  Widget _permissionCategory(String title, List<String> permissions, Color color) {
+
+  Widget _permissionCategory(
+    String title,
+    List<String> permissions,
+    Color color,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Row(
           children: [
             Container(
               width: 12,
               height: 12,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ],
         ),
-        SizedBox(height: 8),
-        ...permissions.map((permission) => Padding(
-          padding: const EdgeInsets.only(left: 20.0, bottom: 4.0),
-          child: Text('• $permission'),
-        )),
+        const SizedBox(height: 8),
+        ...permissions.map(
+          (permission) => Padding(
+            padding: const EdgeInsets.only(left: 20.0, bottom: 4.0),
+            child: Text('• $permission'),
+          ),
+        ),
       ],
     );
   }
-  
+
   String _formatPermission(String permission) {
     // Remove the "android.permission." prefix
     String formatted = permission.replaceAll('android.permission.', '');
-    
+
     // Replace underscores with spaces
     formatted = formatted.replaceAll('_', ' ');
-    
+
     // Make it title case (first letter of each word capitalized)
-    formatted = formatted.split(' ').map((word) => 
-      word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}' : ''
-    ).join(' ');
-    
+    formatted = formatted
+        .split(' ')
+        .map(
+          (word) => word.isNotEmpty
+              ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+              : '',
+        )
+        .join(' ');
+
     return formatted;
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -366,8 +385,12 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
           actions: [
             // Toggle system apps
             IconButton(
-              icon: Icon(_showSystemApps ? Icons.visibility : Icons.visibility_off),
-              tooltip: _showSystemApps ? 'Hide System Apps' : 'Show System Apps',
+              icon: Icon(
+                _showSystemApps ? Icons.visibility : Icons.visibility_off,
+              ),
+              tooltip: _showSystemApps
+                  ? 'Hide System Apps'
+                  : 'Show System Apps',
               onPressed: () {
                 setState(() {
                   _showSystemApps = !_showSystemApps;
@@ -376,10 +399,7 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
               },
             ),
             // Refresh button
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: _loadApps,
-            ),
+            IconButton(icon: const Icon(Icons.refresh), onPressed: _loadApps),
           ],
         ),
         body: Column(
@@ -390,7 +410,7 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Search apps...',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -404,7 +424,7 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
                 },
               ),
             ),
-            
+
             // App count
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -419,89 +439,118 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
                     ),
                   ),
                   // Display loading indicator when refreshing
-                  if (_isLoading) 
-                    SizedBox(
-                      height: 20, 
-                      width: 20, 
+                  if (_isLoading)
+                    const SizedBox(
+                      height: 20,
+                      width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                 ],
               ),
             ),
-            
+
             // App list
             Expanded(
-              child: _isLoading 
-                ? Center(child: CircularProgressIndicator())
-                : _filteredApps.isEmpty 
-                  ? Center(child: Text('No apps found'))
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredApps.isEmpty
+                  ? const Center(child: Text('No apps found'))
                   : ListView.builder(
-                      padding: EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
                       itemCount: _filteredApps.length,
                       itemBuilder: (context, index) {
                         final app = _filteredApps[index];
                         return FutureBuilder<List<String>>(
-                          future: PermissionAnalyzer.getAppPermissions(app.packageName),
+                          future: PermissionAnalyzer.getAppPermissions(
+                            app.packageName,
+                          ),
                           builder: (context, snapshot) {
                             bool hasDangerousPermissions = false;
-                            
+
                             if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                               final permissions = snapshot.data!;
                               final dangerousCount = permissions
-                                  .where((p) => PermissionAnalyzer.dangerousPermissions.contains(p))
+                                  .where(
+                                    (p) => PermissionAnalyzer
+                                        .dangerousPermissions
+                                        .contains(p),
+                                  )
                                   .length;
-                              final dangerousCombo = PermissionAnalyzer
-                                  .checkDangerousPermissionCombinations(permissions);
-                              
-                              hasDangerousPermissions = dangerousCombo.isNotEmpty || dangerousCount >= 3;
+                              final dangerousCombo =
+                                  PermissionAnalyzer.checkDangerousPermissionCombinations(
+                                    permissions,
+                                  );
+
+                              hasDangerousPermissions =
+                                  dangerousCombo.isNotEmpty ||
+                                  dangerousCount >= 3;
                             }
-                            
+
                             return Card(
                               elevation: 2,
-                              margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                              shape: hasDangerousPermissions 
-                                ? RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    side: BorderSide(color: Colors.red, width: 1.5),
-                                  )
-                                : null,
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 4,
+                                horizontal: 8,
+                              ),
+                              shape: hasDangerousPermissions
+                                  ? RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: const BorderSide(
+                                        color: Colors.red,
+                                        width: 1.5,
+                                      ),
+                                    )
+                                  : null,
                               child: ListTile(
-                                leading: app.icon != null 
-                                  ? Image.memory(app.icon!, width: 40, height: 40)
-                                  : Icon(Icons.android, size: 40),
+                                leading: app.icon != null
+                                    ? Image.memory(
+                                        app.icon!,
+                                        width: 40,
+                                        height: 40,
+                                      )
+                                    : const Icon(Icons.android, size: 40),
                                 title: Row(
                                   children: [
                                     Expanded(
                                       child: Text(
                                         app.name,
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                     if (hasDangerousPermissions)
-                                      Icon(Icons.warning_amber_rounded, 
-                                          color: Colors.orange, size: 18),
+                                      const Icon(
+                                        Icons.warning_amber_rounded,
+                                        color: Colors.orange,
+                                        size: 18,
+                                      ),
                                   ],
                                 ),
                                 subtitle: Text(
                                   app.packageName,
-                                  style: TextStyle(fontSize: 12),
+                                  style: const TextStyle(fontSize: 12),
                                 ),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.info_outline),
+                                      icon: const Icon(Icons.info_outline),
                                       onPressed: () => _showAppDetails(app),
                                       tooltip: 'App Details & Permissions',
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.settings),
-                                      onPressed: () => InstalledApps.openSettings(app.packageName),
+                                      icon: const Icon(Icons.settings),
+                                      onPressed: () =>
+                                          InstalledApps.openSettings(
+                                            app.packageName,
+                                          ),
                                       tooltip: 'App Settings',
                                     ),
                                   ],
                                 ),
-                                onTap: () => InstalledApps.startApp(app.packageName),
+                                // onTap: () =>
+                                //     InstalledApps.startApp(app.packageName),
                               ),
                             );
                           },

@@ -1,4 +1,4 @@
-# myapp
+# Nidhi-Rakshak - Secure Financial Environment
 
 A new Flutter project.
 
