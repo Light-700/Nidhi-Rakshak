@@ -212,6 +212,10 @@ def train_fraud_detection_model():
             best_model = model
             best_name = name
     
+    # Ensure we have a model selected
+    if best_model is None:
+        raise ValueError("No model was selected. This should not happen.")
+    
     print(f"\n🏆 Best Model: {best_name} (ROC-AUC: {best_score:.4f})")
     
     # Train the best model
