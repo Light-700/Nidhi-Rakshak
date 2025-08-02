@@ -154,8 +154,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 SecurityStatusIndicator(
                   lastChecked: securityStatus.lastChecked,
-                  // Values from our security service
-                  isDeviceSecure: securityStatus.isDeviceSecure,
+                  // Values from our security service - ensure device is shown as not secure if threats exist
+                  isDeviceSecure: securityStatus.isDeviceSecure && securityStatus.detectedThreats.isEmpty,
                   isRbiCompliant: _complianceStatus?.isRbiCompliant ?? false,
                   isNpciCompliant: _complianceStatus?.isNpciCompliant ?? false,
                   isJailbroken: securityStatus.isJailbroken,
@@ -256,8 +256,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Widget to display security threats
   Widget _buildSecurityThreatsCard() {
     final securityStatus = _securityStatus ?? SecurityStatus.secure();
-    final threats = securityStatus.detectedThreats;
+    final allThreats = securityStatus.detectedThreats;
     final complianceThreats = _getComplianceThreats();
+    
+    // Filter to show only system threats (not app threats) and critical app threats
+    final threats = allThreats.where((threat) => 
+      // Include system threats (not app threats)
+      (!threat.name.contains('Suspicious App')) ||
+      // Or include critical app threats
+      (threat.name.contains('Suspicious App') && threat.level == SecurityThreatLevel.critical)
+    ).toList();
 
     return Card(
       elevation: 4,
@@ -288,7 +296,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
+                  color: Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.red),
                 ),
@@ -339,36 +347,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   bool isComplianceThreat = threat.name.contains(
                     'Compliance Violation',
                   );
+                  
+                  // Is this an app threat?
+                  bool isAppThreat = threat.name.contains('Suspicious App');
 
                   switch (threat.level) {
                     case SecurityThreatLevel.critical:
                       threatColor = Colors.red;
-                      threatIcon =
-                          isComplianceThreat ? Icons.gavel : Icons.error;
+                      threatIcon = isComplianceThreat 
+                          ? Icons.gavel 
+                          : (isAppThreat ? Icons.phone_android : Icons.error);
                       break;
                     case SecurityThreatLevel.high:
                       threatColor = Colors.orange;
-                      threatIcon =
-                          isComplianceThreat ? Icons.gavel : Icons.warning;
+                      threatIcon = isComplianceThreat 
+                          ? Icons.gavel 
+                          : (isAppThreat ? Icons.phone_android : Icons.warning);
                       break;
                     case SecurityThreatLevel.medium:
                       threatColor = Colors.amber;
-                      threatIcon =
-                          isComplianceThreat ? Icons.gavel : Icons.info;
+                      threatIcon = isComplianceThreat 
+                          ? Icons.gavel 
+                          : (isAppThreat ? Icons.phone_android : Icons.info);
                       break;
                     case SecurityThreatLevel.low:
                       threatColor = Colors.blue;
-                      threatIcon =
-                          isComplianceThreat ? Icons.gavel : Icons.info_outline;
+                      threatIcon = isComplianceThreat 
+                          ? Icons.gavel 
+                          : (isAppThreat ? Icons.phone_android : Icons.info_outline);
                       break;
                   }
 
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 4),
-                    color:
-                        isComplianceThreat
-                            ? Colors.red.withValues(alpha: 0.05)
-                            : null,
+                    color: isComplianceThreat
+                        ? Colors.red.withOpacity(0.05)
+                        : null,
                     child: ListTile(
                       leading: Icon(threatIcon, color: threatColor),
                       title: Text(
@@ -431,7 +445,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color),
       ),
@@ -458,9 +472,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .toList();
   }
 
-  // Widget to display suspicious apps
+  // Widget to display app risk statistics
   Widget _buildSuspiciousAppsCard() {
     final suspiciousApps = _getSuspiciousAppThreats();
+    
+    // Create a map of risk levels to counts
+    final Map<String, int> riskStats = {
+      'Critical': 0,
+      'High': 0,
+      'Medium': 0,
+      'Low': 0,
+    };
+    
+    // Count apps by risk level
+    for (final app in suspiciousApps) {
+      switch (app.level) {
+        case SecurityThreatLevel.critical:
+          riskStats['Critical'] = (riskStats['Critical'] ?? 0) + 1;
+          break;
+        case SecurityThreatLevel.high:
+          riskStats['High'] = (riskStats['High'] ?? 0) + 1;
+          break;
+        case SecurityThreatLevel.medium:
+          riskStats['Medium'] = (riskStats['Medium'] ?? 0) + 1;
+          break;
+        case SecurityThreatLevel.low:
+          riskStats['Low'] = (riskStats['Low'] ?? 0) + 1;
+          break;
+      }
+    }
 
     return Card(
       elevation: 4,
@@ -474,7 +514,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Flexible(
                   child: Text(
-                    'Suspicious Applications',
+                    'App Risk Statistics',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                       fontSize: 22,
@@ -483,7 +523,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 suspiciousApps.isEmpty
                     ? Icon(Icons.verified, color: Colors.green)
-                    : Icon(Icons.warning_amber, color: Colors.red),
+                    : Icon(Icons.warning_amber, color: Colors.orange),
               ],
             ),
             SizedBox(height: 16),
@@ -505,62 +545,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
               )
             else
               Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'The following apps might pose a security risk:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 12),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: suspiciousApps.length,
-                    itemBuilder: (context, index) {
-                      final app = suspiciousApps[index];
-
-                      // Extract app name if available
-                      String appName = "Unknown App";
-                      String appDescription = app.description;
-
-                      // Try to parse out app name from the description
-                      if (appDescription.contains(":")) {
-                        final parts = appDescription.split(":");
-                        if (parts.length > 1) {
-                          appName = parts[1].trim();
-                          // Remove the app name from the description
-                          appDescription = parts[0];
-                        }
-                      }
-
-                      return Card(
-                        elevation: 2,
-                        margin: EdgeInsets.symmetric(vertical: 8.0),
-                        child: ListTile(
-                          leading: Icon(Icons.dangerous, color: Colors.red),
-                          title: Text(
-                            appName,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(appDescription),
-                              SizedBox(height: 4),
-                              _getThreatLevelBadge(app.level),
-                            ],
-                          ),
-                          trailing: ElevatedButton(
-                            onPressed: () => _showAppDetails(app),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
+                  // Display statistics for each risk level
+                  ...riskStats.entries
+                      .where((entry) => entry.value > 0)
+                      .map((entry) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: _getRiskColor(entry.key),
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  '${entry.value} apps with ${entry.key.toLowerCase()} risk',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ],
                             ),
-                            child: Text('Info'),
-                          ),
-                          isThreeLine: true,
-                        ),
-                      );
-                    },
+                          ))
+                      .toList(),
+                  
+                  SizedBox(height: 16),
+                  
+                  // View apps list button
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // Navigate to the More Apps screen
+                        Navigator.pushNamed(context, MoreAppsScreen.routeName);
+                      },
+                      icon: Icon(Icons.list),
+                      label: Text('View Apps List'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -569,87 +596,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
-  // Show detailed information about a suspicious app
-  void _showAppDetails(SecurityThreat app) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Row(
-              children: [
-                Icon(Icons.warning_amber, color: Colors.red),
-                SizedBox(width: 8),
-                Expanded(child: Text('Suspicious App Details')),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Type of Threat:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(app.name),
-                SizedBox(height: 16),
-                Text(
-                  'Description:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(app.description),
-                SizedBox(height: 16),
-                Text(
-                  'Risk Level:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                _getThreatLevelBadge(app.level),
-                SizedBox(height: 16),
-                Text(
-                  'Recommended Action:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(_getRecommendedAction(app.level)),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Close'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // In a real app, this would navigate to app settings or uninstall flow
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'This would navigate to app settings in a real app',
-                      ),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: Text('Take Action'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  // Get recommended action based on threat level
-  String _getRecommendedAction(SecurityThreatLevel level) {
-    switch (level) {
-      case SecurityThreatLevel.critical:
-        return 'Uninstall this app immediately. It poses a severe security risk to your device and financial data.';
-      case SecurityThreatLevel.high:
-        return 'Consider uninstalling this app as soon as possible, or restrict its permissions until further investigation.';
-      case SecurityThreatLevel.medium:
-        return 'Review this app\'s permissions and usage. Restrict access to sensitive data if possible.';
-      case SecurityThreatLevel.low:
-        return 'Monitor this app\'s behavior and consider reviewing its permissions.';
+  
+  // Helper method to get color for risk level
+  Color _getRiskColor(String riskLevel) {
+    switch (riskLevel) {
+      case 'Critical':
+        return Colors.red;
+      case 'High':
+        return Colors.deepOrange;
+      case 'Medium':
+        return Colors.orange;
+      case 'Low':
+        return Colors.blue;
+      default:
+        return Colors.grey;
     }
   }
+
+  // Future implementation of app details will go here
 
   Future<void> _refreshDashboard() async {
     setState(() {

@@ -72,43 +72,8 @@ class ThreatDetector {
           ),
         );
       }
-        // In a real implementation, you'd connect to a threat intelligence API
-      // For now, we'll simulate finding threats occasionally for demo purposes
-      if (DateTime.now().second % 5 == 0) {
-        // Adding more detailed suspicious app information
-        final suspiciousApps = [
-          {
-            'name': 'Suspicious App',
-            'appName': 'DataHarvester Pro',
-            'description': 'An app with excessive permissions to contacts, location, and SMS access',
-            'level': SecurityThreatLevel.high,
-          },
-          {
-            'name': 'Suspicious App',
-            'appName': 'Free VPN Service',
-            'description': 'App may be intercepting network traffic and collecting sensitive data',
-            'level': SecurityThreatLevel.medium,
-          },
-          {
-            'name': 'Harmful App',
-            'appName': 'System Optimizer Ultimate',
-            'description': 'Known adware that displays excessive ads and collects user data',
-            'level': SecurityThreatLevel.medium,
-          }
-        ];
-        
-        // Pick one suspicious app at random to report
-        final random = DateTime.now().millisecond % suspiciousApps.length;
-        final suspiciousApp = suspiciousApps[random];
-        
-        threats.add(
-          SecurityThreat(
-            name: suspiciousApp['name'] as String,
-            description: '${suspiciousApp['description']}: ${suspiciousApp['appName']}',
-            level: suspiciousApp['level'] as SecurityThreatLevel,
-          ),
-        );
-      }
+      // We've removed the dummy suspicious app code here since we now use the AppSecurityScanner
+      // for actual app risk assessment
       
       return threats;
     } catch (e) {

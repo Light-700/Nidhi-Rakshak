@@ -69,12 +69,24 @@ class SecurityService {
       ..._complianceThreats,
     ];
 
-    // Device is secure if not jailbroken/rooted and no critical threats
-    final hasCriticalThreats = allThreats.any(
-      (threat) => threat.level == SecurityThreatLevel.critical,
+    // Device is secure only if:
+    // 1. Not jailbroken/rooted
+    // 2. No critical system threats (like developer mode)
+    // 3. No critical app threats
+    final hasCriticalSystemThreats = allThreats.any(
+      (threat) => threat.level == SecurityThreatLevel.critical && 
+                 !threat.name.contains('App'),
     );
 
-    final isDeviceSecure = !isJailbroken && !isRooted && !hasCriticalThreats;
+    final hasCriticalAppThreats = allThreats.any(
+      (threat) => threat.level == SecurityThreatLevel.critical && 
+                 threat.name.contains('App'),
+    );
+
+    final isDeviceSecure = !isJailbroken && 
+                          !isRooted && 
+                          !hasCriticalSystemThreats &&
+                          !hasCriticalAppThreats;
 
     // Create security status
     _lastStatus = SecurityStatus(
@@ -205,9 +217,9 @@ class SecurityService {
     _complianceThreats.clear();
     
     // Update security status without compliance threats
-    final List<SecurityThreat> deviceThreats = _lastStatus?.detectedThreats
-        ?.where((t) => !t.name.contains('Compliance Violation'))
-        .toList() ?? <SecurityThreat>[]; // Explicitly typed empty list
+    final List<SecurityThreat> deviceThreats = (_lastStatus?.detectedThreats ?? [])
+        .where((t) => !t.name.contains('Compliance Violation'))
+        .toList(); // Explicitly typed empty list
     
     _lastStatus = SecurityStatus(
       isDeviceSecure: !deviceThreats.any((t) => t.level == SecurityThreatLevel.critical),

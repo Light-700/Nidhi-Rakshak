@@ -49,7 +49,7 @@ class SecurityStatusIndicator extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        isDeviceSecure ? 'SECURE' : 'COMPROMISED',
+                        isDeviceSecure ? 'SECURE' : 'AT RISK',
                         style: TextStyle(
                           color: isDeviceSecure ? Colors.green : Colors.red,
                           fontWeight: FontWeight.bold,
