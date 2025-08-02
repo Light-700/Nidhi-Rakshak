@@ -42,6 +42,19 @@ class SecurityChecksPlugin: MethodCallHandler {
         
         result.success(getSettingsInt(settingsType, settingsKey, defaultValue))
       }
+      "getAppPermissions" -> {
+        val packageName = call.argument<String>("packageName")
+        if (packageName == null) {
+          result.error("INVALID_ARGUMENTS", "packageName must be provided", null)
+          return
+        }
+        
+        try {
+          result.success(getAppPermissions(packageName))
+        } catch (e: Exception) {
+          result.error("PERMISSION_ERROR", "Failed to get app permissions: ${e.message}", null)
+        }
+      }
       // Add more methods as needed
       else -> {
         result.notImplemented()
@@ -76,5 +89,24 @@ class SecurityChecksPlugin: MethodCallHandler {
 
   fun onDetachedFromEngine() {
     channel.setMethodCallHandler(null)
+  }
+  
+  /**
+   * Get all permissions requested by the app in its manifest
+   */
+  private fun getAppPermissions(packageName: String): List<String> {
+    val packageManager = context.packageManager
+    try {
+      val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        packageManager.getPackageInfo(packageName, android.content.pm.PackageManager.PackageInfoFlags.of(android.content.pm.PackageManager.GET_PERMISSIONS.toLong()))
+      } else {
+        @Suppress("DEPRECATION")
+        packageManager.getPackageInfo(packageName, android.content.pm.PackageManager.GET_PERMISSIONS)
+      }
+      
+      return packageInfo.requestedPermissions?.toList() ?: listOf()
+    } catch (e: Exception) {
+      return listOf()
+    }
   }
 }
