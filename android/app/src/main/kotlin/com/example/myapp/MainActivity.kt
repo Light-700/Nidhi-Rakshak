@@ -158,20 +158,27 @@ override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
      * Inner class that listens for broadcasts from other parts of the Android system.
      */
     inner class SecurityReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "com.ucobank.VALIDATE_TRANSACTION_REAL") {
-                val transactionJson = intent.getStringExtra("transactionData")
-                if (transactionJson != null) {
-                    // When a real transaction is broadcast, parse and validate it
-                    val transactionData = parseTransactionData(transactionJson)
-                    handleRealTransactionValidation(transactionData, null) // Result is handled via broadcast
-                } else {
-                    Log.e("SecurityReceiver", "Received transaction validation intent with no data.")
-                }
+    override fun onReceive(context: Context?, intent: Intent?) {
+        Log.d("FinancialEnv", "=== BROADCAST RECEIVED ===")
+        Log.d("FinancialEnv", "Intent action: ${intent?.action}")
+        Log.d("FinancialEnv", "Intent extras: ${intent?.extras}")
+        
+        if (intent?.action == "com.ucobank.VALIDATE_TRANSACTION_REAL") {
+            val transactionJson = intent.getStringExtra("transactionData")
+            Log.d("FinancialEnv", "Transaction data: $transactionJson")
+            
+            if (transactionJson != null) {
+                val transactionData = parseTransactionData(transactionJson)
+                Log.d("FinancialEnv", "Parsed data: $transactionData")
+                handleRealTransactionValidation(transactionData, null)
+            } else {
+                Log.e("FinancialEnv", "No transaction data received!")
             }
-            // You can handle other intents like INITIALIZE_SECURITY here if needed
         }
     }
+}
+
+
 
     /**
      * The core validation logic that invokes the Dart method.

@@ -37,88 +37,105 @@ class ComplianceCommunicationService {
   }
 
   static Future<dynamic> _handleMethodCall(MethodCall call) async {
-    switch (call.method) {
-      case 'validateTransaction':
-        return await _validateTransaction(call.arguments);
-      case 'checkCompliance':
-        return await _checkCompliance();
-      case 'reportViolation':
-        return await _reportViolation(call.arguments);
-      default:
-        throw PlatformException(
-          code: 'UNIMPLEMENTED',
-          message: 'Method ${call.method} not implemented',
-        );
-    }
+  debugPrint('ComplianceCommunicationService received method call: ${call.method}');
+  debugPrint('Arguments: ${call.arguments}');
+  
+  switch (call.method) {
+    case 'validateTransaction':
+      debugPrint(' Processing transaction validation request');
+      final result = await _validateTransaction(call.arguments);
+      debugPrint('Validation result: $result');
+      return result;
+    case 'checkCompliance':
+      return await _checkCompliance();
+    case 'reportViolation':
+      return await _reportViolation(call.arguments);
+    default:
+      debugPrint(' Unknown method: ${call.method}');
+      throw PlatformException(
+        code: 'UNIMPLEMENTED',
+        message: 'Method ${call.method} not implemented',
+      );
   }
+}
 
-  static Future<Map<String, dynamic>> _validateTransaction(dynamic arguments) async {
-    if (_complianceService == null) {
-      return {
-        'isValid': false,
-        'message': 'Compliance service not initialized',
-        'violations': ['SERVICE_NOT_INITIALIZED'],
-      };
+static Future<Map<String, dynamic>> _validateTransaction(dynamic arguments) async {
+  debugPrint(' _validateTransaction function called with arguments type: ${arguments.runtimeType}');
+  debugPrint('Arguments content: $arguments');
+  
+  if (_complianceService == null) {
+    return {
+      'isValid': false,
+      'message': 'Compliance service not initialized',
+      'violations': ['SERVICE_NOT_INITIALIZED'],
+    };
+  }
+  
+  try {
+    final transactionData = Map<String, dynamic>.from(arguments);
+    
+    // Add debug logging for all data extraction
+    debugPrint('🔍 Extracted transaction data: $transactionData');
+    
+    final amount = (transactionData['amount'] as num?)?.toDouble() ?? 0.0;
+    final mfaCompleted = transactionData['mfaCompleted'] as bool? ?? false;
+    final appId = transactionData['appId'] as String? ?? '';
+    
+    debugPrint('Parsed values - Amount: $amount, MFA: $mfaCompleted, AppId: $appId');
+    
+    // Apply RBI compliance rules
+    final violations = <String>[];
+    
+    // RBI Limit Check: ₹1,00,000
+    if (amount > 100000.0) {
+      violations.add('RBI_TRANSACTION_LIMIT_EXCEEDED');
+      debugPrint('RBI violation: Amount ₹$amount exceeds ₹1,00,000 limit');
     }
     
-    try {
-      final transactionData = Map<String, dynamic>.from(arguments);
-      
-      // Extract transaction details for RBI compliance
-      final amount = (transactionData['amount'] as num?)?.toDouble() ?? 0.0;
-      final mfaCompleted = transactionData['mfaCompleted'] as bool? ?? false;
-      final appId = transactionData['appId'] as String? ?? '';
-      
-      debugPrint('Validating transaction: Amount=₹$amount, MFA=$mfaCompleted, App=$appId');
-      
-      // Apply RBI compliance rules
-      final violations = <String>[];
-      
-      // RBI Limit Check: ₹1,00,000
-      if (amount > 100000.0) {
-        violations.add('RBI_TRANSACTION_LIMIT_EXCEEDED');
-        debugPrint('RBI violation: Amount ₹$amount exceeds ₹1,00,000 limit');
-      }
-      
-      // MFA requirement for transactions above ₹5,000
-      if (amount > 5000.0 && !mfaCompleted) {
-        violations.add('RBI_MFA_REQUIRED');
-        debugPrint('RBI violation: MFA required for amount ₹$amount');
-      }
-      
-      final isValid = violations.isEmpty;
-      final message = isValid 
-        ? 'Transaction compliant with RBI/NPCI guidelines'
-        : 'Transaction blocked: ${violations.length} violations detected';
-      
-      debugPrint('Validation result: $message');
-      
-      // Convert violations to security threats if needed
-      if (!isValid && violations.isNotEmpty) {
-        await _convertViolationsToSecurityThreats(violations, transactionData);
-      }
-      
-      return {
-        'isValid': isValid,
-        'clearance_granted': isValid,
-        'message': message,
-        'violations': violations,
-        'amount': amount,
-        'rbiCompliant': !violations.contains('RBI_TRANSACTION_LIMIT_EXCEEDED'),
-        'npciCompliant': !violations.contains('RBI_MFA_REQUIRED'),
-        'security_score': isValid ? 0.95 : 0.30,
-        'mfa_verified': mfaCompleted,
-      };
-    } catch (e) {
-      debugPrint('Validation error: $e');
-      return {
-        'isValid': false,
-        'clearance_granted': false,
-        'message': 'Compliance validation failed: $e',
-        'violations': ['SYSTEM_ERROR'],
-      };
+    // MFA requirement for transactions above ₹5,000
+    if (amount > 5000.0 && !mfaCompleted) {
+      violations.add('RBI_MFA_REQUIRED');
+      debugPrint(' RBI violation: MFA required for amount ₹$amount');
     }
+    
+    debugPrint(' Violations list: $violations (type: ${violations.runtimeType})');
+    
+    final isValid = violations.isEmpty;
+    final message = isValid 
+      ? 'Transaction compliant with RBI/NPCI guidelines'
+      : 'Transaction blocked: ${violations.length} violations detected';
+    
+    debugPrint('Validation result: $message');
+    
+    // Convert violations to security threats if needed
+    if (!isValid && violations.isNotEmpty) {
+      debugPrint('Converting ${violations.length} violations to security threats');
+      await _convertViolationsToSecurityThreats(violations, transactionData);
+      debugPrint(' Violation conversion completed');
+    }
+    
+    return {
+      'isValid': isValid,
+      'clearance_granted': isValid,
+      'message': message,
+      'violations': violations,
+      'amount': amount,
+      'rbiCompliant': !violations.contains('RBI_TRANSACTION_LIMIT_EXCEEDED'),
+      'npciCompliant': !violations.contains('RBI_MFA_REQUIRED'),
+      'security_score': isValid ? 0.95 : 0.30,
+      'mfa_verified': mfaCompleted,
+    };
+  } catch (e, stackTrace) {
+    debugPrint(' Validation error: $e');
+    debugPrint('Stack trace: $stackTrace');
+    return {
+      'isValid': false,
+      'clearance_granted': false,
+      'message': 'Compliance validation failed: $e',
+      'violations': ['SYSTEM_ERROR'],
+    };
   }
+}
 
   static Future<Map<String, dynamic>> _checkCompliance() async {
     if (_complianceService == null) {
@@ -151,22 +168,48 @@ class ComplianceCommunicationService {
     }
   }
 
-  static Future<void> _convertViolationsToSecurityThreats(
-    List<dynamic> violations,
-    Map<String, dynamic>? transactionData,
-  ) async {
-    if (_securityService == null || _actionsService == null) return;
+static Future<void> _convertViolationsToSecurityThreats(
+  List<dynamic> violations,
+  Map<String, dynamic>? transactionData,
+) async {
+  if (_securityService == null || _actionsService == null) return;
 
-    for (final violation in violations) {
+  for (int i = 0; i < violations.length; i++) {
+    try {
+      final violation = violations[i];
       String violationType;
       String description;
       
       if (violation is String) {
         violationType = violation;
         description = _getViolationDescription(violation);
+      } else if (violation is Map<String, dynamic>) {
+        // Handle violation as a map
+        violationType = violation['type']?.toString() ?? 'UNKNOWN_VIOLATION';
+        description = violation['description']?.toString() ?? _getViolationDescription(violationType);
       } else {
-        violationType = violation.type ?? violation.toString();
-        description = violation.description ?? _getViolationDescription(violationType);
+        // Handle other object types safely
+        violationType = violation.toString();
+        description = _getViolationDescription(violationType);
+        
+        // Try to extract type and description if they exist
+        try {
+          final typeProperty = violation.runtimeType.toString().contains('type') 
+            ? violation.type?.toString() 
+            : null;
+          if (typeProperty != null) {
+            violationType = typeProperty;
+          }
+          
+          final descProperty = violation.runtimeType.toString().contains('description')
+            ? violation.description?.toString()
+            : null;
+          if (descProperty != null) {
+            description = descProperty;
+          }
+        } catch (e) {
+          debugPrint('Warning: Could not extract violation properties: $e');
+        }
       }
 
       // Create security threat based on violation
@@ -190,8 +233,13 @@ class ComplianceCommunicationService {
             ? 'Transaction ID: ${transactionData['transactionId']}'
             : 'Compliance check violation',
       ));
+    } catch (e) {
+      debugPrint('Error processing violation at index $i: $e');
+      // Continue processing other violations
+      continue;
     }
   }
+}
 
   static String _getViolationDescription(String violationType) {
     switch (violationType) {

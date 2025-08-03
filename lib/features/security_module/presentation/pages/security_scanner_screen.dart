@@ -15,11 +15,22 @@ class _SecurityScannerScreenState extends State<SecurityScannerScreen> {
   bool _isLoading = false;
   SecurityStatus? _securityStatus;
   String _errorMessage = '';
+  bool _hasInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _loadInitialStatus();
+  }
+
+   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Only initialize once
+    if (!_hasInitialized) {
+      _hasInitialized = true;
+      _loadInitialStatus();
+    }
   }
 
   Future<void> _loadInitialStatus() async {
