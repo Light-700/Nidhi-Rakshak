@@ -36,7 +36,7 @@ class SecurityStatusIndicator extends StatelessWidget {
                   color: isDeviceSecure ? Colors.green : Colors.red,
                   size: 32,
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Flexible(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,7 +61,7 @@ class SecurityStatusIndicator extends StatelessWidget {
               ],
             ),
 
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Security Check Items
             _buildStatusItem(
@@ -82,13 +82,13 @@ class SecurityStatusIndicator extends StatelessWidget {
               isNpciCompliant ? 'Compliant' : 'Non-compliant',
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Last Updated
             Row(
               children: [
-                Icon(Icons.access_time, size: 16, color: Colors.grey),
-                SizedBox(width: 4),
+                const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
                 Text(
                   'Last checked: ${_formatTime(lastChecked)}',
                   style: Theme.of(context).textTheme.bodySmall,
@@ -111,12 +111,12 @@ class SecurityStatusIndicator extends StatelessWidget {
             color: isGood ? Colors.green : Colors.red,
             size: 20,
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: TextStyle(fontWeight: FontWeight.w500)),
+                Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
                 Text(
                   subtitle,
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
@@ -221,15 +221,15 @@ class _ActionsListWidgetState extends State<ActionsListWidget> {
                     maxLines: 1,
                   ),
                 ),
-                IconButton(icon: Icon(Icons.refresh), onPressed: widget.onRefresh),
+                IconButton(icon: const Icon(Icons.refresh), onPressed: widget.onRefresh),
               ],
             ),
           ),
 
           // Actions List
            if (widget.actions.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
               child: Center(
                 child: Column(
                   children: [
@@ -243,9 +243,9 @@ class _ActionsListWidgetState extends State<ActionsListWidget> {
           else
             ListView.separated(
               shrinkWrap: true, 
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: widget.actions.length > 5  ? 5: widget.actions.length, // Show only first 5 actions 
-              separatorBuilder: (context, index) => Divider(height: 1),
+              separatorBuilder: (context, index) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final action = widget.actions[index];
                 return _buildActionTile(action);
@@ -259,7 +259,7 @@ class _ActionsListWidgetState extends State<ActionsListWidget> {
               child: Center(
                 child: TextButton.icon(
                   onPressed: _showAllActionsDialog,
-                  label: Text('View All Actions'), 
+                  label: const Text('View All Actions'), 
                 ),
               ),
             ),
@@ -276,19 +276,19 @@ class _ActionsListWidgetState extends State<ActionsListWidget> {
         return Dialog.fullscreen(
           child: Scaffold(
             appBar: AppBar(
-              title: Text(
+              title: const Text(
                 'Recent Security Actions',
                 style: TextStyle(fontSize: 18),
               ),
               leading: IconButton(
-                icon: Icon(Icons.close),
+                icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
             body:ListView.separated(
-                    padding: EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16.0),
                     itemCount: widget.actions.length, // Shows ALL actions
-                    separatorBuilder: (context, index) => Divider(height: 1),
+                    separatorBuilder: (context, index) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final action = widget.actions[index];
                       return _buildActionTile(action); 
@@ -308,10 +308,10 @@ class _ActionsListWidgetState extends State<ActionsListWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(action.description),
-          SizedBox(height: 2),
+          const SizedBox(height: 2),
           Text(
             _formatTime(action.timestamp),
-            style: TextStyle(fontSize: 11, color: Colors.grey),
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
           ),
         ],
       ),
@@ -403,7 +403,7 @@ class _ActionsListWidgetState extends State<ActionsListWidget> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),

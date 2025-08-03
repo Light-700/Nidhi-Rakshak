@@ -727,7 +727,7 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
                               TextSpan(text: 'Found ${_filteredApps.length} apps'),
                               if (_selectedRiskFilter != 'All')
                                 TextSpan(
-                                  text: ' (${_selectedRiskFilter} filter)',
+                                  text: ' ($_selectedRiskFilter filter)',
                                   style: TextStyle(
                                     fontStyle: FontStyle.italic,
                                     fontSize: 12,
@@ -771,7 +771,7 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
                                     label: Text('$count $filter'),
                                   ),
                                 );
-                              }).toList(),
+                              }),
                             ],
                           ),
                         ),

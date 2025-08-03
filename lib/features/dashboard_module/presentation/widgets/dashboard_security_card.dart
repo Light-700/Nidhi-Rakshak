@@ -9,9 +9,9 @@ class DashboardSecurityCard extends StatelessWidget {
 
   /// Constructor
   const DashboardSecurityCard({
-    Key? key,
+    super.key,
     required this.securityStatus,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +122,7 @@ class DashboardSecurityCard extends StatelessWidget {
             ),
             Text(
               statusText,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -179,7 +179,7 @@ class DashboardSecurityCard extends StatelessWidget {
               ],
             ),
           );
-        }).toList(),
+        }),
         
         // App Risk Statistics
         if (appRiskStats.isNotEmpty) ...[
@@ -201,7 +201,7 @@ class DashboardSecurityCard extends StatelessWidget {
                 style: const TextStyle(color: Colors.white),
               ),
             );
-          }).toList(),
+          }),
           
           // View apps list button
           const SizedBox(height: 8),
@@ -216,7 +216,7 @@ class DashboardSecurityCard extends StatelessWidget {
               icon: const Icon(Icons.list, color: Colors.white70),
               label: const Text('View Apps List', style: TextStyle(color: Colors.white)),
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.white.withOpacity(0.1)),
+                backgroundColor: WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
               ),
             ),
           ),

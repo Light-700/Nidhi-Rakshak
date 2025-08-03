@@ -111,7 +111,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: Text('Security Dashboard'),
+          title: const Text('Security Dashboard'),
           backgroundColor: Colors.transparent,
           elevation: 0,
           foregroundColor:
@@ -120,7 +120,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   : Colors.black,
           actions: [
             IconButton(
-              icon: Icon(Icons.security),
+              icon: const Icon(Icons.security),
               tooltip: 'Security Scanner',
               onPressed: () {
                 // Navigate to security scanner
@@ -128,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.apps),
+              icon: const Icon(Icons.apps),
               tooltip: 'More Apps',
               onPressed: () {
                 // Navigate to more apps
@@ -136,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.settings),
+              icon: const Icon(Icons.settings),
               tooltip: 'Settings',
               onPressed: () {
                 // Navigate to settings
@@ -148,7 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         body: RefreshIndicator(
           onRefresh: _refreshDashboard,
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -162,16 +162,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   isRooted: securityStatus.isRooted,
                 ),
 
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 // Security Threats Section
                 _buildSecurityThreatsCard(),
 
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // Suspicious Apps Section
                 _buildSuspiciousAppsCard(),
 
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // Actions List Section
                 ActionsListWidget(
@@ -179,7 +179,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onRefresh: _refreshActions,
                 ),
 
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // Quick Actions Section
                 _buildQuickActionsCard(),
@@ -203,7 +203,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               'Quick Actions',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -213,7 +213,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     () => _runSecurityScan(),
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: _buildQuickActionButton(
                     'Check Compliance',
@@ -242,11 +242,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         children: [
           Icon(icon),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12),
+            style: const TextStyle(fontSize: 12),
           ),
         ],
       ),
@@ -292,9 +292,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             // Show compliance status if there are compliance threats
             if (complianceThreats.isNotEmpty) ...[
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Container(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -316,7 +316,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             if (threats.isEmpty)
               Center(
                 child: Padding(
@@ -336,7 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             else
               ListView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: threats.length,
                 itemBuilder: (context, index) {
                   final threat = threats[index];
@@ -379,7 +379,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   }
 
                   return Card(
-                    margin: EdgeInsets.symmetric(vertical: 4),
+                    margin: const EdgeInsets.symmetric(vertical: 4),
                     color: isComplianceThreat
                         ? Colors.red.withOpacity(0.05)
                         : null,
@@ -387,15 +387,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       leading: Icon(threatIcon, color: threatColor),
                       title: Text(
                         threat.name,
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(threat.description),
                           if (isComplianceThreat) ...[
-                            SizedBox(height: 4),
-                            Text(
+                            const SizedBox(height: 4),
+                            const Text(
                               'This violation affects RBI/NPCI compliance',
                               style: TextStyle(
                                 color: Colors.red,
@@ -526,7 +526,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     : Icon(Icons.warning_amber, color: Colors.orange),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             if (suspiciousApps.isEmpty)
               Center(
                 child: Padding(
@@ -562,17 +562,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     color: _getRiskColor(entry.key),
                                   ),
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
                                   '${entry.value} apps with ${entry.key.toLowerCase()} risk',
-                                  style: TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
                           ))
                       .toList(),
                   
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   
                   // View apps list button
                   Center(
@@ -581,8 +581,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         // Navigate to the More Apps screen
                         Navigator.pushNamed(context, MoreAppsScreen.routeName);
                       },
-                      icon: Icon(Icons.list),
-                      label: Text('View Apps List'),
+                      icon: const Icon(Icons.list),
+                      label: const Text('View Apps List'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.white,
@@ -664,7 +664,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _runSecurityScan() async {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('Running security scan...')));
+    ).showSnackBar(const SnackBar(content: Text('Running security scan...')));
 
     try {
       final securityService = ServiceProvider.of(context).securityService;
@@ -714,7 +714,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _checkCompliance() async {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('Running compliance check...')));
+    ).showSnackBar(const SnackBar(content: Text('Running compliance check...')));
 
     try {
       final complianceService = ServiceProvider.of(context).complianceService;

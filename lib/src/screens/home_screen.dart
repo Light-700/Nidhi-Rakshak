@@ -87,8 +87,8 @@ class HomeScreen extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color.fromARGB(255, 228, 118, 0), const Color.fromARGB(255, 0, 182, 36)],
+        gradient: const LinearGradient(
+          colors: [Color.fromARGB(255, 228, 118, 0), Color.fromARGB(255, 0, 182, 36)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -426,8 +426,8 @@ class HomeScreen extends StatelessWidget {
       height: 50,
       width: 50,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color.fromARGB(255, 231, 120, 17), const Color.fromARGB(255, 131, 235, 146)],
+        gradient: const LinearGradient(
+          colors: [Color.fromARGB(255, 231, 120, 17), Color.fromARGB(255, 131, 235, 146)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
