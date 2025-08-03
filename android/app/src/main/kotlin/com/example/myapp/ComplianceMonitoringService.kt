@@ -48,10 +48,10 @@ class ComplianceMonitoringService : Service() {
     }
 
     private fun performComplianceCheck() {
-        // Broadcast compliance check request
-        val intent = Intent("com.ucobank.PERIODIC_COMPLIANCE_CHECK")
-        intent.putExtra("timestamp", System.currentTimeMillis())
-        sendBroadcast(intent)
+    val intent = Intent("com.ucobank.VALIDATE_TRANSACTION_REAL")
+    intent.putExtra("timestamp", System.currentTimeMillis())
+    intent.putExtra("source", "periodic_check")
+    sendBroadcast(intent)
     }
 
     override fun onDestroy() {

@@ -28,26 +28,26 @@ class MainActivity: FlutterActivity() {
      * This is the single, correct configuration for the Flutter engine.
      * It merges the duplicate code and sets up all necessary channels and plugins.
      */
-    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
-        
-        // 0. Create notification channels for Android 8.0+
-        createNotificationChannels()
-        
-        // 1. Register the SecurityChecksPlugin for device-level security checks
-        val securityPlugin = SecurityChecksPlugin()
-        securityPlugin.onAttachedToEngine(flutterEngine.dartExecutor.binaryMessenger, applicationContext)
-        
-        // 2. Set up the main compliance channel for communication between Dart and native
-        complianceChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, COMPLIANCE_CHANNEL)
-        complianceChannel.setMethodCallHandler { call, result ->
-            // This handler processes methods called FROM Dart TO native
-            handleMethodCall(call, result)
-        }
-        
-        // 3. Set up the broadcast receiver to listen for events from Android services (like the AccessibilityService)
-        setupSecurityReceiver()
+override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+    super.configureFlutterEngine(flutterEngine)
+    createNotificationChannels()
+    
+    // Register SecurityChecksPlugin with correct channel
+    SecurityChecksPlugin().onAttachedToEngine(
+        flutterEngine.dartExecutor.binaryMessenger, 
+        applicationContext
+    )
+    
+    // Setup compliance channel
+    complianceChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, COMPLIANCE_CHANNEL)
+    complianceChannel.setMethodCallHandler { call, result ->
+        handleMethodCall(call, result)
     }
+    
+    setupSecurityReceiver()
+}
+
+
     
     /**
      * Creates the notification channels required for the app.
@@ -133,6 +133,7 @@ class MainActivity: FlutterActivity() {
         val filter = IntentFilter().apply {
             // This is the primary action your AccessibilityService should broadcast
             addAction("com.ucobank.VALIDATE_TRANSACTION_REAL")
+            addAction("com.ucobank.PERIODIC_COMPLIANCE_CHECK")
             // Other actions are preserved from your original code
             addAction("com.ucobank.INITIALIZE_SECURITY")
             addAction("com.ucobank.APP_LAUNCH")

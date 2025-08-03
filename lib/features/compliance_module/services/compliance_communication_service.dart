@@ -6,124 +6,117 @@ import '../../../features/background_module/services/security_actions_service.da
 import '../../../features/background_module/services/security/security_models.dart';
 import '../../../features/dashboard_module/presentation/widgets.dart';
 
-
 class ComplianceCommunicationService {
   static const platform = MethodChannel('com.ucobank.compliance');
   static ComplianceService? _complianceService;
   static SecurityService? _securityService;
   static SecurityActionsService? _actionsService;
+  static bool _isInitialized = false;
 
-  static Future initialize(
+  static Future<void> initialize(
     ComplianceService complianceService,
     SecurityService securityService,
     SecurityActionsService actionsService,
   ) async {
+    if (_isInitialized) return;
+    
     _complianceService = complianceService;
     _securityService = securityService;
     _actionsService = actionsService;
     
+    // Set up handler to receive calls FROM Kotlin
     platform.setMethodCallHandler(_handleMethodCall);
     
     try {
       await platform.invokeMethod('initializeComplianceMonitoring');
+      _isInitialized = true;
       debugPrint('Compliance communication initialized successfully');
     } catch (e) {
       debugPrint('Error initializing compliance communication: $e');
     }
   }
 
-
   static Future<dynamic> _handleMethodCall(MethodCall call) async {
-  switch (call.method) {
-    case 'validateTransaction':
-      return await _validateTransaction(call.arguments);
-    case 'checkCompliance':
-      return await _checkCompliance();
-    case 'reportViolation':
-      return await _reportViolation(call.arguments);
-    case 'validateTransactionFromNative':
-      return await _handleNativeValidation(call.arguments);
-    default:
-      throw PlatformException(
-        code: 'UNIMPLEMENTED',
-        message: 'Method ${call.method} not implemented',
-      );
-  }
-}
-
-// ADD THIS METHOD: Handle validation requests from native Android bridge
-static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic> args) async {
-  if (_complianceService == null) {
-    return {
-      'isValid': false,
-      'message': 'Compliance service not initialized',
-      'violations': ['SERVICE_NOT_INITIALIZED'],
-    };
-  }
-
-  try {
-    // Extract transaction data from native call
-    final transactionData = Map<String, dynamic>.from(args);
-    
-    final result = await _complianceService!.validateTransaction(transactionData);
-    
-    if (!result.isValid && result.violations.isNotEmpty) {
-      await _convertViolationsToSecurityThreats(result.violations, transactionData);
+    switch (call.method) {
+      case 'validateTransaction':
+        return await _validateTransaction(call.arguments);
+      case 'checkCompliance':
+        return await _checkCompliance();
+      case 'reportViolation':
+        return await _reportViolation(call.arguments);
+      default:
+        throw PlatformException(
+          code: 'UNIMPLEMENTED',
+          message: 'Method ${call.method} not implemented',
+        );
     }
-    
-    // Return actual validation result
-    return {
-      'isValid': result.isValid,
-      'message': result.message,
-      'violations': result.violations.map((v) => {
-        'type': v.type,
-        'description': v.description,
-        'severity': v.severity.toString(),
-        'timestamp': v.timestamp.toIso8601String(),
-      }).toList(),
-    };
-  } catch (e) {
-    debugPrint('Error in native validation: $e');
-    return {
-      'isValid': false,
-      'message': 'Validation error: $e',
-      'violations': ['VALIDATION_ERROR'],
-    };
   }
-}
 
-
-  static Future<Map<String, dynamic>> _validateTransaction(Map<String, dynamic> transactionData) async {
+  static Future<Map<String, dynamic>> _validateTransaction(dynamic arguments) async {
     if (_complianceService == null) {
-      throw PlatformException(
-        code: 'NOT_INITIALIZED',
-        message: 'Compliance service not initialized',
-      );
+      return {
+        'isValid': false,
+        'message': 'Compliance service not initialized',
+        'violations': ['SERVICE_NOT_INITIALIZED'],
+      };
     }
-
+    
     try {
-      final result = await _complianceService!.validateTransaction(transactionData);
+      final transactionData = Map<String, dynamic>.from(arguments);
       
-      // If there are violations, convert them to security threats
-      if (!result.isValid && result.violations.isNotEmpty) {
-        await _convertViolationsToSecurityThreats(result.violations, transactionData);
+      // Extract transaction details for RBI compliance
+      final amount = (transactionData['amount'] as num?)?.toDouble() ?? 0.0;
+      final mfaCompleted = transactionData['mfaCompleted'] as bool? ?? false;
+      final appId = transactionData['appId'] as String? ?? '';
+      
+      debugPrint('Validating transaction: Amount=₹$amount, MFA=$mfaCompleted, App=$appId');
+      
+      // Apply RBI compliance rules
+      final violations = <String>[];
+      
+      // RBI Limit Check: ₹1,00,000
+      if (amount > 100000.0) {
+        violations.add('RBI_TRANSACTION_LIMIT_EXCEEDED');
+        debugPrint('RBI violation: Amount ₹$amount exceeds ₹1,00,000 limit');
+      }
+      
+      // MFA requirement for transactions above ₹5,000
+      if (amount > 5000.0 && !mfaCompleted) {
+        violations.add('RBI_MFA_REQUIRED');
+        debugPrint('RBI violation: MFA required for amount ₹$amount');
+      }
+      
+      final isValid = violations.isEmpty;
+      final message = isValid 
+        ? 'Transaction compliant with RBI/NPCI guidelines'
+        : 'Transaction blocked: ${violations.length} violations detected';
+      
+      debugPrint('Validation result: $message');
+      
+      // Convert violations to security threats if needed
+      if (!isValid && violations.isNotEmpty) {
+        await _convertViolationsToSecurityThreats(violations, transactionData);
       }
       
       return {
-        'isValid': result.isValid,
-        'message': result.message,
-        'violations': result.violations.map((v) => {
-          'type': v.type,
-          'description': v.description,
-          'severity': v.severity.toString(),
-          'timestamp': v.timestamp.toIso8601String(),
-        }).toList(),
+        'isValid': isValid,
+        'clearance_granted': isValid,
+        'message': message,
+        'violations': violations,
+        'amount': amount,
+        'rbiCompliant': !violations.contains('RBI_TRANSACTION_LIMIT_EXCEEDED'),
+        'npciCompliant': !violations.contains('RBI_MFA_REQUIRED'),
+        'security_score': isValid ? 0.95 : 0.30,
+        'mfa_verified': mfaCompleted,
       };
     } catch (e) {
-      throw PlatformException(
-        code: 'VALIDATION_ERROR',
-        message: 'Error validating transaction: $e',
-      );
+      debugPrint('Validation error: $e');
+      return {
+        'isValid': false,
+        'clearance_granted': false,
+        'message': 'Compliance validation failed: $e',
+        'violations': ['SYSTEM_ERROR'],
+      };
     }
   }
 
@@ -165,11 +158,22 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
     if (_securityService == null || _actionsService == null) return;
 
     for (final violation in violations) {
+      String violationType;
+      String description;
+      
+      if (violation is String) {
+        violationType = violation;
+        description = _getViolationDescription(violation);
+      } else {
+        violationType = violation.type ?? violation.toString();
+        description = violation.description ?? _getViolationDescription(violationType);
+      }
+
       // Create security threat based on violation
       final threat = SecurityThreat(
-        name: 'Compliance Violation: ${violation.type}',
-        description: violation.description,
-        level: _mapViolationSeverityToThreatLevel(violation.severity),
+        name: 'Compliance Violation: $violationType',
+        description: description,
+        level: _mapViolationSeverityToThreatLevel(violationType),
       );
 
       // Add threat to security service
@@ -178,8 +182,8 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
       // Record action
       _actionsService!.recordAction(ActionItem(
         title: 'Compliance Violation Detected',
-        description: violation.description,
-        type: _mapViolationTypeToActionType(violation.type),
+        description: description,
+        type: _mapViolationTypeToActionType(violationType),
         status: ActionStatus.warning,
         timestamp: DateTime.now(),
         details: transactionData != null 
@@ -189,14 +193,29 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
     }
   }
 
-  static SecurityThreatLevel _mapViolationSeverityToThreatLevel(dynamic severity) {
-    final severityStr = severity.toString().toLowerCase();
-    switch (severityStr) {
-      case 'violationseverity.critical':
+  static String _getViolationDescription(String violationType) {
+    switch (violationType) {
+      case 'RBI_TRANSACTION_LIMIT_EXCEEDED':
+        return 'Transaction amount exceeds RBI limit of ₹1,00,000';
+      case 'RBI_MFA_REQUIRED':
+        return 'Multi-factor authentication required for transactions above ₹5,000';
+      case 'SERVICE_NOT_INITIALIZED':
+        return 'Compliance service not properly initialized';
+      case 'SYSTEM_ERROR':
+        return 'System error during compliance validation';
+      default:
+        return 'Compliance violation detected: $violationType';
+    }
+  }
+
+  static SecurityThreatLevel _mapViolationSeverityToThreatLevel(String violationType) {
+    switch (violationType) {
+      case 'RBI_TRANSACTION_LIMIT_EXCEEDED':
         return SecurityThreatLevel.critical;
-      case 'violationseverity.high':
+      case 'RBI_MFA_REQUIRED':
         return SecurityThreatLevel.high;
-      case 'violationseverity.medium':
+      case 'SERVICE_NOT_INITIALIZED':
+      case 'SYSTEM_ERROR':
         return SecurityThreatLevel.medium;
       default:
         return SecurityThreatLevel.low;
@@ -237,6 +256,45 @@ static Future<Map<String, dynamic>> _handleNativeValidation(Map<String, dynamic>
       });
     } catch (e) {
       debugPrint('Error notifying payment app: $e');
+    }
+  }
+
+  // Public methods for external use
+  static Future<Map<String, dynamic>> validateTransactionExternal(Map<String, dynamic> transactionData) async {
+    if (!_isInitialized) {
+      throw Exception('Compliance communication not initialized');
+    }
+
+    try {
+      final result = await platform.invokeMethod('validateTransaction', transactionData);
+      return Map<String, dynamic>.from(result);
+    } catch (e) {
+      debugPrint('Error validating transaction: $e');
+      return {
+        'isValid': false,
+        'message': 'Unable to verify compliance - transaction blocked for security',
+        'violations': ['COMMUNICATION_FAILURE'],
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> checkComplianceExternal() async {
+    if (!_isInitialized) {
+      throw Exception('Compliance communication not initialized');
+    }
+
+    try {
+      final result = await platform.invokeMethod('checkCompliance');
+      return Map<String, dynamic>.from(result);
+    } catch (e) {
+      debugPrint('Error checking compliance: $e');
+      return {
+        'isRbiCompliant': false,
+        'isNpciCompliant': false,
+        'isFullyCompliant': false,
+        'violationCount': 1,
+        'lastChecked': DateTime.now().toIso8601String(),
+      };
     }
   }
 }
