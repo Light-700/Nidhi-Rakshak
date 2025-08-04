@@ -430,8 +430,8 @@ def create_advanced_features(transaction_data: Dict):
 @app.get("/")
 async def root():
     return {
-        "message": "Nidhi-Rakshak Fraud Detection API with UPI Tracking",
-        "version": "2.0.0",
+        "message": "Nidhi-Rakshak Fraud Detection API with UPI Tracking - Cloud Ready",
+        "version": "2.0.1",
         "status": "active",
         "features": {
             "fraud_detection": "Advanced ML-based transaction fraud detection",
