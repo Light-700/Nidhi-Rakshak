@@ -1,4 +1,4 @@
-package com.example.nidhi_rakshak
+package com.nidhi_rakshak.app
 
 import android.content.Context
 import android.content.Intent
@@ -98,7 +98,7 @@ class SecurityChecksPlugin: MethodCallHandler {
 
   fun onAttachedToEngine(binaryMessenger: BinaryMessenger, applicationContext: Context) {
     context = applicationContext
-    channel = MethodChannel(binaryMessenger, "com.nidhi_rakshak/security_checks")
+    channel = MethodChannel(binaryMessenger, "com.nidhi_rakshak.app/security_checks")
     channel.setMethodCallHandler(this)
   }
 

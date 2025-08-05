@@ -7,7 +7,7 @@ import '../../../features/background_module/services/security/security_models.da
 import '../../../features/dashboard_module/presentation/widgets.dart';
 
 class ComplianceCommunicationService {
-  static const platform = MethodChannel('com.ucobank.compliance');
+  static const platform = MethodChannel('com.nidhi_rakshak.app/compliance');
   static ComplianceService? _complianceService;
   static SecurityService? _securityService;
   static SecurityActionsService? _actionsService;

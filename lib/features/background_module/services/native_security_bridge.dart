@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 /// Bridge to native security checks for advanced jailbreak and root detection
 class NativeSecurityBridge {
-  static const MethodChannel _channel = MethodChannel('com.nidhi_rakshak/security_checks');
+  static const MethodChannel _channel = MethodChannel('com.nidhi_rakshak.app/security_checks');
   
   /// Check for jailbreak on iOS using native code
   static Future<bool> checkJailbreak() async {

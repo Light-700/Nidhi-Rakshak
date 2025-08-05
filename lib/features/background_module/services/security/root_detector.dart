@@ -8,7 +8,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 /// Class for detecting root on Android devices using multiple methods
 class RootDetector {
   /// Platform channel for native security checks
-  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak/security_checks');
+  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak.app/security_checks');
 
   /// Check if device is rooted (Android) using multiple detection methods
   static Future<bool> isRooted() async {

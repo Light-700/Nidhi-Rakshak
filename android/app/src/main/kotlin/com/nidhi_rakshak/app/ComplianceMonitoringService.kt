@@ -1,4 +1,4 @@
-package com.example.myapp
+package com.nidhi_rakshak.app
 
 import android.app.Notification
 import android.app.Service

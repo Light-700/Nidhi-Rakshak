@@ -12,7 +12,7 @@ enum AppRiskLevel {
 
 /// Class for enhanced app security scanning
 class AppSecurityScanner {
-  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak/security_checks');
+  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak.app/security_checks');
   
   // Cache to store risk information for faster access
   static final Map<String, Map<String, dynamic>> _riskInfoCache = {};

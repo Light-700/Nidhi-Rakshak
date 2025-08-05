@@ -1,4 +1,4 @@
-package com.example.myapp
+package com.nidhi_rakshak.app
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -20,7 +20,7 @@ import org.json.JSONException
 
 class MainActivity: FlutterActivity() {
     // Define a single, clear channel name for all compliance communication
-    private val COMPLIANCE_CHANNEL = "com.ucobank.compliance"
+    private val COMPLIANCE_CHANNEL = "com.nidhi_rakshak.app/compliance"
     private lateinit var complianceChannel: MethodChannel
     private var securityReceiver: SecurityReceiver? = null
 

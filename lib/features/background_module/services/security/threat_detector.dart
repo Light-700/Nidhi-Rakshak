@@ -11,7 +11,7 @@ import 'permission_analyzer.dart';
 /// Class for detecting various security threats on the device
 class ThreatDetector {
   /// Platform channel for native security checks
-  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak/security_checks');
+  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak.app/security_checks');
 
   /// Detect security threats on the device
   static Future<List<SecurityThreat>> detectThreats() async {

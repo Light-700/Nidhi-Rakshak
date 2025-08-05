@@ -9,7 +9,7 @@ import Flutter
   ) -> Bool {
     // Register our security checks plugin
     let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
-    let securityChannel = FlutterMethodChannel(name: "com.nidhi_rakshak/security_checks", 
+    let securityChannel = FlutterMethodChannel(name: "com.nidhi_rakshak.app/security_checks", 
                                                binaryMessenger: controller.binaryMessenger)
     let securityChecks = SecurityChecksPlugin()
     securityChannel.setMethodCallHandler(securityChecks.handle)

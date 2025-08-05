@@ -8,7 +8,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 /// Class for detecting jailbreak on iOS devices using multiple methods
 class JailbreakDetector {
   /// Platform channel for native security checks
-  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak/security_checks');
+  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak.app/security_checks');
 
   /// Check if device is jailbroken (iOS) using multiple detection methods
   static Future<bool> isJailbroken() async {

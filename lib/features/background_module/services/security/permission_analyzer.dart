@@ -8,7 +8,7 @@ import 'security_models.dart';
 /// Class for analyzing app permissions to detect potentially harmful applications
 class PermissionAnalyzer {
   /// Platform channel for native security checks
-  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak/security_checks');
+  static const MethodChannel _platform = MethodChannel('com.nidhi_rakshak.app/security_checks');
 
   /// List of dangerous Android permissions that could indicate malicious apps
   static const List<String> dangerousPermissions = [

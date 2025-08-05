@@ -3,7 +3,7 @@ import UIKit
 
 @objc public class SecurityChecksPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "com.nidhi_rakshak/security_checks", binaryMessenger: registrar.messenger())
+    let channel = FlutterMethodChannel(name: "com.nidhi_rakshak.app/security_checks", binaryMessenger: registrar.messenger())
     let instance = SecurityChecksPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
