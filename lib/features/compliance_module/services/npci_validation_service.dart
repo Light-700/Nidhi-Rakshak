@@ -13,7 +13,7 @@ static const double UPI_TRANSACTION_LIMIT = 100000.0;
 // ignore: constant_identifier_names
 static const double RTGS_MIN_AMOUNT = 200000.0;
 // ignore: constant_identifier_names
-static const int MAX_TRANSACTIONS_PER_DAY = 10;
+static const int MAX_TRANSACTIONS_PER_DAY = 20;
 
 // Check overall NPCI compliance
 Future<NPCIComplianceResult> checkNPCICompliance() async {
