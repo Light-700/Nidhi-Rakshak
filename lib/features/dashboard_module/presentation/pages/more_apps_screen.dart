@@ -866,33 +866,37 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
                                     Expanded(
                                       child: Text(
                                         app.name,
+                                        overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ),
                                     if (hasDangerousPermissions)
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.warning_amber_rounded,
-                                            color: borderColor ?? Colors.orange,
-                                            size: 16,
-                                          ),
-                                          if (riskLevelName != null)
-                                            Padding(
-                                              padding: const EdgeInsets.only(left: 4.0),
-                                              child: Text(
-                                                riskLevelName,
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: borderColor,
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 4.0),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.warning_amber_rounded,
+                                              color: borderColor ?? Colors.orange,
+                                              size: 16,
+                                            ),
+                                            if (riskLevelName != null)
+                                              Padding(
+                                                padding: const EdgeInsets.only(left: 4.0),
+                                                child: Text(
+                                                  riskLevelName,
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: borderColor,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                   ],
                                 ),
@@ -900,23 +904,33 @@ class _MoreAppsScreenState extends State<MoreAppsScreen> {
                                   app.packageName,
                                   style: const TextStyle(fontSize: 12),
                                 ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.info_outline),
-                                      onPressed: () => _showAppDetails(app),
-                                      tooltip: 'App Details & Permissions',
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.settings),
-                                      onPressed: () =>
-                                          InstalledApps.openSettings(
-                                            app.packageName,
-                                          ),
-                                      tooltip: 'App Settings',
-                                    ),
-                                  ],
+                                // Using a SizedBox with constrained width to avoid overflow
+                                trailing: SizedBox(
+                                  width: 96, // width of two IconButtons
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.info_outline),
+                                        onPressed: () => _showAppDetails(app),
+                                        tooltip: 'App Details & Permissions',
+                                        iconSize: 20, // making icons slightly smaller
+                                        constraints: const BoxConstraints(), // removes default padding
+                                        padding: const EdgeInsets.all(8),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.settings),
+                                        onPressed: () =>
+                                            InstalledApps.openSettings(
+                                              app.packageName,
+                                            ),
+                                        tooltip: 'App Settings',
+                                        iconSize: 20, // making icons slightly smaller
+                                        constraints: const BoxConstraints(), // removes default padding
+                                        padding: const EdgeInsets.all(8),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 // onTap: () =>
                                 //     InstalledApps.startApp(app.packageName),

@@ -64,16 +64,20 @@ class AppSecurityScanner {
   /// Scan for suspicious apps with medium risk or higher
   static Future<List<Map<String, dynamic>>> detectSuspiciousApps() async {
     try {
+      print('Calling native detectSuspiciousApps method');
       final result = await _platform.invokeMethod('detectSuspiciousApps');
+      print('Received result from native code: ${result?.runtimeType}');
       
       if (result is List) {
+        print('Found ${result.length} suspicious apps');
         return result
             .map((item) => Map<String, dynamic>.from(item))
             .toList();
       }
+      print('Result is not a list: $result');
       return [];
     } on PlatformException catch (e) {
-      print('Error detecting suspicious apps: ${e.message}');
+      print('Error detecting suspicious apps: ${e.message}, ${e.details}');
       return [];
     }
   }

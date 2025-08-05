@@ -148,9 +148,12 @@ class SecurityChecksPlugin: MethodCallHandler {
       }
       "detectSuspiciousApps" -> {
         try {
+          Log.d("SecurityChecksPlugin", "Detecting suspicious apps...")
           val suspiciousApps = detectSuspiciousApps()
+          Log.d("SecurityChecksPlugin", "Found ${suspiciousApps.size} suspicious apps")
           result.success(suspiciousApps)
         } catch (e: Exception) {
+          Log.e("SecurityChecksPlugin", "Error in detectSuspiciousApps method call", e)
           result.error("SUSPICIOUS_APPS_ERROR", "Failed to detect suspicious apps: ${e.message}", null)
         }
       }
@@ -393,16 +396,22 @@ class SecurityChecksPlugin: MethodCallHandler {
       
       // Calculate risk score for each app
       for (pkg in nonSystemApps) {
-        val riskAssessment = calculateAppRiskScore(pkg.packageName)
-        val riskLevel = riskAssessment["riskLevel"] as String
-        
-        // Only include apps with medium risk or higher
-        if (riskLevel == "medium" || riskLevel == "high" || riskLevel == "critical") {
-          suspiciousApps.add(riskAssessment)
+        try {
+          val riskAssessment = calculateAppRiskScore(pkg.packageName)
+          val riskLevel = riskAssessment["riskLevel"] as String
+          
+          // Only include apps with medium risk or higher
+          if (riskLevel == "medium" || riskLevel == "high" || riskLevel == "critical") {
+            suspiciousApps.add(riskAssessment)
+          }
+        } catch (e: Exception) {
+          // Skip this app if there's an error analyzing it
+          Log.e("SecurityChecksPlugin", "Error analyzing app: ${pkg.packageName}", e)
         }
       }
     } catch (e: Exception) {
-      // Return empty list in case of error
+      // Log the error and return empty list
+      Log.e("SecurityChecksPlugin", "Error detecting suspicious apps", e)
     }
     
     return suspiciousApps

@@ -180,8 +180,13 @@ class _SecurityScannerScreenState extends State<SecurityScannerScreen> {
             color: isIssueDetected ? Colors.red : Colors.green,
           ),
           const SizedBox(width: 8),
-          Text(title),
-          const Spacer(),
+          Expanded(
+            child: Text(
+              title,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
           Text(
             isIssueDetected ? 'Issue Detected' : 'Secure',
             style: TextStyle(
@@ -306,11 +311,22 @@ class _SecurityScannerScreenState extends State<SecurityScannerScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${_formatMetadataKey(entry.key)}: ',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  Flexible(
+                    flex: 2,
+                    child: Text(
+                      '${_formatMetadataKey(entry.key)}: ',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  Expanded(child: Text(entry.value.toString())),
+                  Flexible(
+                    flex: 3,
+                    child: Text(
+                      entry.value.toString(),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3,
+                    ),
+                  ),
                 ],
               ),
             ),

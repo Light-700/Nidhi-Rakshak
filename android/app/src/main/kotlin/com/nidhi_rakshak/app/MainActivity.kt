@@ -32,8 +32,9 @@ override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
     createNotificationChannels()
     
-    // Register SecurityChecksPlugin with correct channel
-    SecurityChecksPlugin().onAttachedToEngine(
+    // Register SecurityChecksPlugin with correct channel - create a persistent instance
+    val securityChecksPlugin = SecurityChecksPlugin()
+    securityChecksPlugin.onAttachedToEngine(
         flutterEngine.dartExecutor.binaryMessenger, 
         applicationContext
     )
