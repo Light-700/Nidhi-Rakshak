@@ -10,3 +10,4 @@ xgboost==1.7.6
 matplotlib==3.7.1
 seaborn==0.12.2
 imbalanced-learn==0.10.1
+python-dotenv==1.0.0

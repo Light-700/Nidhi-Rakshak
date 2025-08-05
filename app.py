@@ -11,6 +11,14 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel
 import sqlite3
 from contextlib import contextmanager
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get Render configuration
+RENDER_API_KEY = os.getenv("Render")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 
 app = FastAPI(title="Fraud Detection API")
 
@@ -173,6 +181,32 @@ def initialize_database():
 
 # Initialize database on startup
 initialize_database()
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize default partner apps on startup"""
+    try:
+        with get_db_connection() as conn:
+            # Check if mock_payment_app already exists
+            existing = conn.execute(
+                "SELECT app_id FROM partner_apps WHERE app_id = ?", ("mock_payment_app",)
+            ).fetchone()
+            
+            if not existing:
+                # Register the mock payment app automatically
+                conn.execute('''
+                    INSERT INTO partner_apps 
+                    (app_id, app_name, contact_email, webhook_url, api_key, is_active)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', ("mock_payment_app", "Mock Payment App", "test@example.com", 
+                      None, "default_key", True))
+                conn.commit()
+                print("✅ Mock Payment App registered automatically")
+            else:
+                print("✅ Mock Payment App already registered")
+                
+    except Exception as e:
+        print(f"⚠️ Warning: Could not auto-register mock payment app: {e}")
 
 def calculate_risk_score(fraud_count: int, total_transactions: int, recent_frauds: int = 0) -> float:
     """Calculate a numerical risk score (0-100)"""
@@ -433,6 +467,8 @@ async def root():
         "message": "Nidhi-Rakshak Fraud Detection API with UPI Tracking - Cloud Ready",
         "version": "2.0.1",
         "status": "active",
+        "environment": ENVIRONMENT,
+        "render_configured": bool(RENDER_API_KEY),
         "features": {
             "fraud_detection": "Advanced ML-based transaction fraud detection",
             "upi_tracking": "Per-UPI ID fraud counter and risk assessment",
@@ -448,6 +484,8 @@ async def root():
             "fraud_profile": "/fraud-profile/{upi_id} (GET) - Get detailed fraud profile",
             "blacklist": "/blacklist/{upi_id} (POST) - Manually blacklist user",
             "partner_stats": "/partner-stats/{partner_app_id} (GET) - Partner usage stats",
+            "register_partner": "/register-partner (POST) - Register new partner app",
+            "validate_transaction": "/validate-transaction (POST) - Real-time transaction validation",
             "docs": "/docs"
         },
         "thresholds": {
